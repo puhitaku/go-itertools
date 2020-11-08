@@ -179,3 +179,25 @@ func GroupByIface[T ComparableIface[T]](seq []T) (chan Group[T]) {
 
 	return c
 }
+
+func ISlice[T any](seq []T, start, stop, step int) (chan T) {
+	if step <= 0 {
+		panic("step must be more than zero")
+	}
+
+	c := make(chan T)
+
+	go func() {
+		defer close(c)
+
+		if stop == 0 {
+			stop = len(seq)
+		}
+
+		for i := start; i < stop; i += step {
+			c <- seq[i]
+		}
+	}()
+
+	return c
+}
