@@ -3,8 +3,8 @@ all:
 
 .PHONY:
 translate:
-	@go tool go2go translate ./itertools
+	@go tool go2go translate
 
 .PHONY:
 test:
-	@go tool go2go test ./itertools
+	@go tool go2go test
