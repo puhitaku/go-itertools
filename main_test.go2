@@ -224,9 +224,10 @@ func testGroupByIface(t *testing.T) {
 		{4, 3},
 		{4, 3},
 	}
+
+	it := itertools.GroupByIface(seq)
 	expect := []testGroup{{Point{1, 2}, 2}, {Point{3, 2}, 1}, {Point{3, 4}, 1}, {Point{4, 3}, 2}}
 	result := []testGroup{}
-	it := itertools.GroupByIface(seq)
 
 	for group := range it {
 		n := 0
