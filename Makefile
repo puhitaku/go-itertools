@@ -12,3 +12,7 @@ test:
 .PHONY:
 fmt:
 	@gofmt -w *.go2 ./itertools/*.go2
+
+.PHONY:
+clean:
+	@rm -f *.go ./itertools/*.go
