@@ -53,8 +53,8 @@ func Compress[T any](data []T, selectors []bool) (chan T) {
 	go func() {
 		z := Zip2(data, selectors)
 		for v := range z {
-			if v.v2 {
-				c <- v.v1
+			if v.V2 {
+				c <- v.V1
 			}
 		}
 		close(c)
@@ -74,6 +74,23 @@ func DropWhile[T any](pred func(v T) bool, seq []T) (chan T) {
         }
 
         for i := start; i < len(seq); i++ {
+            c <- seq[i]
+        }
+        close(c)
+    }()
+
+    return c
+}
+
+func TakeWhile[T any](pred func(v T) bool, seq []T) (chan T) {
+    c := make(chan T)
+
+    go func() {
+        for i := 0; i < len(seq); i++ {
+            if !pred(seq[i]) {
+                break
+            }
+
             c <- seq[i]
         }
         close(c)
@@ -197,6 +214,89 @@ func ISlice[T any](seq []T, start, stop, step int) (chan T) {
 		for i := start; i < stop; i += step {
 			c <- seq[i]
 		}
+	}()
+
+	return c
+}
+
+func Tee[T any](seq []T, n int) ([]chan T) {
+	var cs []chan T
+
+	for i := 0; i < n; i++ {
+		c := make(chan T)
+		cs = append(cs, c)
+
+		go func() {
+			for j := 0; j < len(seq); j++ {
+				c <- seq[j]
+			}
+			close(c)
+		}()
+	}
+
+	return cs
+}
+
+func ZipLongest2[T1, T2 any](s1 []T1, s2 []T2, f1 T1, f2 T2) (chan Tuple2[T1, T2]) {
+	c := make(chan Tuple2[T1, T2])
+	l := IntMax(len(s1), len(s2))
+
+	go func() {
+		for i := 0; i < l; i++ {
+			var v1 T1
+			var v2 T2
+
+			if i < len(s1) {
+				v1 = s1[i]
+			} else {
+				v1 = f1
+			}
+
+			if i < len(s2) {
+				v2 = s2[i]
+			} else {
+				v2 = f2
+			}
+
+			c <- Tuple2[T1, T2]{V1: v1, V2: v2}
+		}
+		close(c)
+	}()
+
+	return c
+}
+
+func ZipLongest3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3, f1 T1, f2 T2, f3 T3) (chan Tuple3[T1, T2, T3]) {
+	c := make(chan Tuple3[T1, T2, T3])
+	l := IntMax(len(s1), len(s2), len(s3))
+
+	go func() {
+		for i := 0; i < l; i++ {
+			var v1 T1
+			var v2 T2
+			var v3 T3
+
+			if i < len(s1) {
+				v1 = s1[i]
+			} else {
+				v1 = f1
+			}
+
+			if i < len(s2) {
+				v2 = s2[i]
+			} else {
+				v2 = f2
+			}
+
+			if i < len(s3) {
+				v3 = s3[i]
+			} else {
+				v3 = f3
+			}
+
+			c <- Tuple3[T1, T2, T3]{V1: v1, V2: v2, V3: v3}
+		}
+		close(c)
 	}()
 
 	return c

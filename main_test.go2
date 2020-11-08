@@ -32,17 +32,17 @@ func TestFinite(t *testing.T) {
 	t.Run("ChainFromIterable", testChainFromIterable)
 	t.Run("Compress", testCompress)
 	t.Run("DropWhile", testDropWhile)
+	t.Run("TakeWhile", testTakeWhile)
 	t.Run("FilterFalse", testFilterFalse)
 	t.Run("GroupBy", testGroupBy)
 	t.Run("GroupByIface", testGroupByIface)
 	t.Run("ISlice", testISlice)
-	/*
-	t.Run("StarMap", testStarMap)
-	t.Run("TakeWhile", testTakeWhile)
 	t.Run("Tee", testTee)
-	t.Run("Zip", testZip)
 	t.Run("ZipLongest", testZipLongest)
-	*/
+}
+
+func TestBuiltins(t *testing.T) {
+	//t.Run("Zip", testZip)
 }
 
 func testCount(t *testing.T) {
@@ -175,6 +175,22 @@ func testDropWhile(t *testing.T) {
 	}
 }
 
+func testTakeWhile(t *testing.T) {
+	pred := func (v int) bool { return v < 5 }
+	seq := []int{1, 4, 6, 4, 1}
+	it := itertools.TakeWhile(pred, seq)
+	expect := []int{1, 4}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
 func testFilterFalse(t *testing.T) {
 	pred := func (v int) bool { return v % 2 == 0 }
 	seq := []int{0, 1, 2, 3, 4, 5}
@@ -292,6 +308,56 @@ func testISlice(t *testing.T) {
 	for v := range it {
 		result += string(v)
 	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
+
+func testTee(t *testing.T) {
+	seq := []int{1, 2, 3, 4}
+	its := itertools.Tee(seq, 3)
+
+	for i := 0; i < 3; i++ {
+		result := []int{}
+		for v := range its[i] {
+			result = append(result, v)
+		}
+
+		if !reflect.DeepEqual(result, seq) {
+			t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", seq, result)
+		}
+	}
+}
+
+func testZipLongest(t *testing.T) {
+	s1, s2, s3 := []int{1, 2}, []int{2, 3, 4, 5}, []int{9, 8, 7, 6, 5}
+
+	// ZipLongest2
+	z2 := itertools.ZipLongest2(s1, s2, 111, 222)
+	expect := [][]int{{1, 2, 111, 111}, {2, 3, 4, 5}}
+
+	v1, v2 := []int{}, []int{}
+	for t := range z2 {
+		v1, v2 = append(v1, t.V1), append(v2, t.V2)
+	}
+	
+	result := [][]int{v1, v2}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	// ZipLongest3
+	z3 := itertools.ZipLongest3(s1, s2, s3, 111, 222, 333)
+	expect = [][]int{{1, 2, 111, 111, 111}, {2, 3, 4, 5, 222}, {9, 8, 7, 6, 5}}
+
+	v1, v2, v3 := []int{}, []int{}, []int{}
+	for t := range z3 {
+		v1, v2, v3 = append(v1, t.V1), append(v2, t.V2), append(v3, t.V3)
+	}
+
+	result = [][]int{v1, v2, v3}
 
 	if !reflect.DeepEqual(result, expect) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)

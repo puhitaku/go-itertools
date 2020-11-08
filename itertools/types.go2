@@ -32,3 +32,21 @@ type Addable interface {
 type AddableIface[T any] interface {
 	Add(v T) T
 }
+
+type Tuple2[T1, T2 any] struct {
+    V1 T1
+    V2 T2
+}
+
+type Tuple3[T1, T2, T3 any] struct {
+    V1 T1
+    V2 T2
+	V3 T3
+}
+
+type Tuple4[T1, T2, T3, T4 any] struct {
+    V1 T1
+    V2 T2
+	V3 T3
+	V4 T4
+}

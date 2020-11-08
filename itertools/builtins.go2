@@ -2,25 +2,63 @@
 
 package itertools
 
+import (
+	"sort"
+)
 
-type Zip2T[T, U any] struct {
-    v1 T
-    v2 U
+func IntMin(i ... int) int {
+	if len(i) < 1 {
+		panic("no comparable integers are passed")
+	}
+
+	sort.Ints(i)
+	return i[0]
 }
 
-func Zip2[T, U any](it1 []T, it2 []U) (chan Zip2T[T, U]) {
-	c := make(chan Zip2T[T, U])
-	l := 0
-
-	if len(it1) < len(it2) {
-		l = len(it1)
-	} else {
-		l = len(it2)
+func IntMax(i ... int) int {
+	if len(i) < 1 {
+		panic("no comparable integers are passed")
 	}
+
+	sort.Ints(i)
+	return i[len(i)-1]
+}
+
+func Zip2[T1, T2 any](it1 []T1, it2 []T2) (chan Tuple2[T1, T2]) {
+	c := make(chan Tuple2[T1, T2])
+	l := IntMin(len(it1), len(it2))
 
 	go func() {
 		for i := 0; i < l; i++ {
-			c <- Zip2T[T, U]{v1: it1[i], v2: it2[i]}
+			c <- Tuple2[T1, T2]{V1: it1[i], V2: it2[i]}
+		}
+		close(c)
+	}()
+
+	return c
+}
+
+func Zip3[T1, T2, T3 any](it1 []T1, it2 []T2, it3 []T3) (chan Tuple3[T1, T2, T3]) {
+	c := make(chan Tuple3[T1, T2, T3])
+	l := IntMin(len(it1), len(it2), len(it3))
+
+	go func() {
+		for i := 0; i < l; i++ {
+			c <- Tuple3[T1, T2, T3]{V1: it1[i], V2: it2[i], V3: it3[i]}
+		}
+		close(c)
+	}()
+
+	return c
+}
+
+func Zip4[T1, T2, T3, T4 any](it1 []T1, it2 []T2, it3 []T3, it4 []T4) (chan Tuple4[T1, T2, T3, T4]) {
+	c := make(chan Tuple4[T1, T2, T3, T4])
+	l := IntMin(len(it1), len(it2), len(it3), len(it4))
+
+	go func() {
+		for i := 0; i < l; i++ {
+			c <- Tuple4[T1, T2, T3, T4]{V1: it1[i], V2: it2[i], V3: it3[i], V4: it4[i]}
 		}
 		close(c)
 	}()
