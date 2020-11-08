@@ -160,7 +160,7 @@ func testCompress(t *testing.T) {
 }
 
 func testDropWhile(t *testing.T) {
-	pred := func (v int) bool { return v < 5 }
+	pred := func(v int) bool { return v < 5 }
 	seq := []int{1, 4, 6, 4, 1}
 	it := itertools.DropWhile(pred, seq)
 	expect := []int{6, 4, 1}
@@ -176,7 +176,7 @@ func testDropWhile(t *testing.T) {
 }
 
 func testTakeWhile(t *testing.T) {
-	pred := func (v int) bool { return v < 5 }
+	pred := func(v int) bool { return v < 5 }
 	seq := []int{1, 4, 6, 4, 1}
 	it := itertools.TakeWhile(pred, seq)
 	expect := []int{1, 4}
@@ -192,7 +192,7 @@ func testTakeWhile(t *testing.T) {
 }
 
 func testFilterFalse(t *testing.T) {
-	pred := func (v int) bool { return v % 2 == 0 }
+	pred := func(v int) bool { return v%2 == 0 }
 	seq := []int{0, 1, 2, 3, 4, 5}
 	it := itertools.FilterFalse(pred, seq)
 	expect := []int{0, 2, 4}
@@ -232,7 +232,7 @@ func testGroupByIface(t *testing.T) {
 		N int
 	}
 
-	seq := []Point {
+	seq := []Point{
 		{1, 2},
 		{1, 2},
 		{3, 2},
@@ -341,7 +341,7 @@ func testZipLongest(t *testing.T) {
 	for t := range z2 {
 		v1, v2 = append(v1, t.V1), append(v2, t.V2)
 	}
-	
+
 	result := [][]int{v1, v2}
 
 	if !reflect.DeepEqual(result, expect) {

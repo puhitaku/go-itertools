@@ -6,7 +6,7 @@ import (
 	"sort"
 )
 
-func IntMin(i ... int) int {
+func IntMin(i ...int) int {
 	if len(i) < 1 {
 		panic("no comparable integers are passed")
 	}
@@ -15,7 +15,7 @@ func IntMin(i ... int) int {
 	return i[0]
 }
 
-func IntMax(i ... int) int {
+func IntMax(i ...int) int {
 	if len(i) < 1 {
 		panic("no comparable integers are passed")
 	}
@@ -24,7 +24,7 @@ func IntMax(i ... int) int {
 	return i[len(i)-1]
 }
 
-func Zip2[T1, T2 any](it1 []T1, it2 []T2) (chan Tuple2[T1, T2]) {
+func Zip2[T1, T2 any](it1 []T1, it2 []T2) chan Tuple2[T1, T2] {
 	c := make(chan Tuple2[T1, T2])
 	l := IntMin(len(it1), len(it2))
 
@@ -38,7 +38,7 @@ func Zip2[T1, T2 any](it1 []T1, it2 []T2) (chan Tuple2[T1, T2]) {
 	return c
 }
 
-func Zip3[T1, T2, T3 any](it1 []T1, it2 []T2, it3 []T3) (chan Tuple3[T1, T2, T3]) {
+func Zip3[T1, T2, T3 any](it1 []T1, it2 []T2, it3 []T3) chan Tuple3[T1, T2, T3] {
 	c := make(chan Tuple3[T1, T2, T3])
 	l := IntMin(len(it1), len(it2), len(it3))
 
@@ -52,7 +52,7 @@ func Zip3[T1, T2, T3 any](it1 []T1, it2 []T2, it3 []T3) (chan Tuple3[T1, T2, T3]
 	return c
 }
 
-func Zip4[T1, T2, T3, T4 any](it1 []T1, it2 []T2, it3 []T3, it4 []T4) (chan Tuple4[T1, T2, T3, T4]) {
+func Zip4[T1, T2, T3, T4 any](it1 []T1, it2 []T2, it3 []T3, it4 []T4) chan Tuple4[T1, T2, T3, T4] {
 	c := make(chan Tuple4[T1, T2, T3, T4])
 	l := IntMin(len(it1), len(it2), len(it3), len(it4))
 

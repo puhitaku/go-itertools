@@ -2,7 +2,7 @@
 
 package itertools
 
-func Count[T Incrementable](start T) (chan T) {
+func Count[T Incrementable](start T) chan T {
 	c := make(chan T)
 	v := start
 	go func() {
@@ -16,7 +16,7 @@ func Count[T Incrementable](start T) (chan T) {
 	return c
 }
 
-func Cycle[T any](iter []T) (chan T) {
+func Cycle[T any](iter []T) chan T {
 	c := make(chan T)
 	go func() {
 		for {
@@ -28,7 +28,7 @@ func Cycle[T any](iter []T) (chan T) {
 	return c
 }
 
-func Repeat[T any](v T, n int) (chan T) {
+func Repeat[T any](v T, n int) chan T {
 	c := make(chan T)
 	go func() {
 		for i := 0; i < n; i++ {

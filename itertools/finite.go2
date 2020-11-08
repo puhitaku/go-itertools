@@ -1,7 +1,8 @@
 // finite: Iterators terminating on the shortest input sequence
 
 package itertools
-func Accumulate[T Addable](iter []T) (chan T) {
+
+func Accumulate[T Addable](iter []T) chan T {
 	c := make(chan T)
 	var accum T
 
@@ -15,7 +16,7 @@ func Accumulate[T Addable](iter []T) (chan T) {
 	return c
 }
 
-func AccumulateIface[T AddableIface[T]](iter []T) (chan T) {
+func AccumulateIface[T AddableIface[T]](iter []T) chan T {
 	c := make(chan T)
 	var accum T
 
@@ -29,13 +30,13 @@ func AccumulateIface[T AddableIface[T]](iter []T) (chan T) {
 	return c
 }
 
-func Chain[T any](iter ... []T) (chan T) {
+func Chain[T any](iter ...[]T) chan T {
 	c := make(chan T)
 
 	go func() {
 		for _, it := range iter {
 			for _, v := range it {
-				c <-v
+				c <- v
 			}
 		}
 		close(c)
@@ -43,11 +44,11 @@ func Chain[T any](iter ... []T) (chan T) {
 	return c
 }
 
-func ChainFromIterable[T any](iter [][]T) (chan T) {
+func ChainFromIterable[T any](iter [][]T) chan T {
 	return Chain(iter...)
 }
 
-func Compress[T any](data []T, selectors []bool) (chan T) {
+func Compress[T any](data []T, selectors []bool) chan T {
 	c := make(chan T)
 
 	go func() {
@@ -62,44 +63,44 @@ func Compress[T any](data []T, selectors []bool) (chan T) {
 	return c
 }
 
-func DropWhile[T any](pred func(v T) bool, seq []T) (chan T) {
-    c := make(chan T)
+func DropWhile[T any](pred func(v T) bool, seq []T) chan T {
+	c := make(chan T)
 
-    go func() {
-        start := 0
-        for start = range seq {
-            if !pred(seq[start]) {
-                break
-            }
-        }
+	go func() {
+		start := 0
+		for start = range seq {
+			if !pred(seq[start]) {
+				break
+			}
+		}
 
-        for i := start; i < len(seq); i++ {
-            c <- seq[i]
-        }
-        close(c)
-    }()
+		for i := start; i < len(seq); i++ {
+			c <- seq[i]
+		}
+		close(c)
+	}()
 
-    return c
+	return c
 }
 
-func TakeWhile[T any](pred func(v T) bool, seq []T) (chan T) {
-    c := make(chan T)
+func TakeWhile[T any](pred func(v T) bool, seq []T) chan T {
+	c := make(chan T)
 
-    go func() {
-        for i := 0; i < len(seq); i++ {
-            if !pred(seq[i]) {
-                break
-            }
+	go func() {
+		for i := 0; i < len(seq); i++ {
+			if !pred(seq[i]) {
+				break
+			}
 
-            c <- seq[i]
-        }
-        close(c)
-    }()
+			c <- seq[i]
+		}
+		close(c)
+	}()
 
-    return c
+	return c
 }
 
-func FilterFalse[T any](pred func(v T) bool, seq []T) (chan T) {
+func FilterFalse[T any](pred func(v T) bool, seq []T) chan T {
 	c := make(chan T)
 
 	go func() {
@@ -115,11 +116,11 @@ func FilterFalse[T any](pred func(v T) bool, seq []T) (chan T) {
 }
 
 type Group[T any] struct {
-	Key T
+	Key   T
 	Group <-chan T
 }
 
-func GroupBy[T Comparable](seq []T) (chan Group[T]) {
+func GroupBy[T Comparable](seq []T) chan Group[T] {
 	c := make(chan Group[T])
 	var gc chan T
 
@@ -145,8 +146,8 @@ func GroupBy[T Comparable](seq []T) (chan Group[T]) {
 
 				curKey = seq[i]
 				gc = make(chan T)
-				c <- Group[T] {
-					Key: curKey,
+				c <- Group[T]{
+					Key:   curKey,
 					Group: gc,
 				}
 			}
@@ -158,7 +159,7 @@ func GroupBy[T Comparable](seq []T) (chan Group[T]) {
 	return c
 }
 
-func GroupByIface[T ComparableIface[T]](seq []T) (chan Group[T]) {
+func GroupByIface[T ComparableIface[T]](seq []T) chan Group[T] {
 	c := make(chan Group[T])
 	var gc chan T
 
@@ -184,8 +185,8 @@ func GroupByIface[T ComparableIface[T]](seq []T) (chan Group[T]) {
 
 				curKey = seq[i]
 				gc = make(chan T)
-				c <- Group[T] {
-					Key: curKey,
+				c <- Group[T]{
+					Key:   curKey,
 					Group: gc,
 				}
 			}
@@ -197,7 +198,7 @@ func GroupByIface[T ComparableIface[T]](seq []T) (chan Group[T]) {
 	return c
 }
 
-func ISlice[T any](seq []T, start, stop, step int) (chan T) {
+func ISlice[T any](seq []T, start, stop, step int) chan T {
 	if step <= 0 {
 		panic("step must be more than zero")
 	}
@@ -219,7 +220,7 @@ func ISlice[T any](seq []T, start, stop, step int) (chan T) {
 	return c
 }
 
-func Tee[T any](seq []T, n int) ([]chan T) {
+func Tee[T any](seq []T, n int) []chan T {
 	var cs []chan T
 
 	for i := 0; i < n; i++ {
@@ -237,7 +238,7 @@ func Tee[T any](seq []T, n int) ([]chan T) {
 	return cs
 }
 
-func ZipLongest2[T1, T2 any](s1 []T1, s2 []T2, f1 T1, f2 T2) (chan Tuple2[T1, T2]) {
+func ZipLongest2[T1, T2 any](s1 []T1, s2 []T2, f1 T1, f2 T2) chan Tuple2[T1, T2] {
 	c := make(chan Tuple2[T1, T2])
 	l := IntMax(len(s1), len(s2))
 
@@ -266,7 +267,7 @@ func ZipLongest2[T1, T2 any](s1 []T1, s2 []T2, f1 T1, f2 T2) (chan Tuple2[T1, T2
 	return c
 }
 
-func ZipLongest3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3, f1 T1, f2 T2, f3 T3) (chan Tuple3[T1, T2, T3]) {
+func ZipLongest3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3, f1 T1, f2 T2, f3 T3) chan Tuple3[T1, T2, T3] {
 	c := make(chan Tuple3[T1, T2, T3])
 	l := IntMax(len(s1), len(s2), len(s3))
 
