@@ -23,6 +23,6 @@ More comfortable port of Python's (more-)itertools for Go 2 with type generics.
  - GroupByIface()
  - ISlice()
  - Tee()
- - ZipLongest2(), ZipLongest3()
+ - ZipLongest2(), ZipLongest3(), ZipLongest4()
 
 (Note: StarMap is not ported as its original concept is not applicable to Go.)
