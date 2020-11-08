@@ -1,0 +1,40 @@
+// infinite: Inifinite iterators
+
+package itertools
+
+func Count[T Incrementable](start T) (chan T) {
+	c := make(chan T)
+	v := start
+	go func() {
+		for {
+			for {
+				c <- v
+				v++
+			}
+		}
+	}()
+	return c
+}
+
+func Cycle[T any](iter []T) (chan T) {
+	c := make(chan T)
+	go func() {
+		for {
+			for _, v := range iter {
+				c <- v
+			}
+		}
+	}()
+	return c
+}
+
+func Repeat[T any](v T, n int) (chan T) {
+	c := make(chan T)
+	go func() {
+		for i := 0; i < n; i++ {
+			c <- v
+		}
+		close(c)
+	}()
+	return c
+}

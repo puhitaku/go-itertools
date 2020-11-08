@@ -1,0 +1,242 @@
+package main
+
+import (
+	"reflect"
+	"testing"
+
+	"github.com/puhitaku/go2-itertools/itertools"
+)
+
+type Point struct {
+	X, Y int
+}
+
+func (p Point) Add(v Point) Point {
+	return Point{X: p.X + v.X, Y: p.Y + v.Y}
+}
+
+func (p Point) Eq(v Point) bool {
+	return p.X == v.X && p.Y == v.Y
+}
+
+func TestInfinite(t *testing.T) {
+	t.Run("Count", testCount)
+	t.Run("Cycle", testCycle)
+	t.Run("Repeat", testRepeat)
+}
+
+func TestFinite(t *testing.T) {
+	t.Run("Accumulate", testAccumulate)
+	t.Run("AccumulateIface", testAccumulateIface)
+	t.Run("Chain", testChain)
+	t.Run("ChainFromIterable", testChainFromIterable)
+	t.Run("Compress", testCompress)
+	t.Run("DropWhile", testDropWhile)
+	t.Run("FilterFalse", testFilterFalse)
+	t.Run("GroupBy", testGroupBy)
+	t.Run("GroupByIface", testGroupByIface)
+	/*
+	t.Run("ISlice", testISlice)
+	t.Run("StarMap", testStarMap)
+	t.Run("TakeWhile", testTakeWhile)
+	t.Run("Tee", testTee)
+	t.Run("Zip", testZip)
+	t.Run("ZipLongest", testZipLongest)
+	*/
+}
+
+func testCount(t *testing.T) {
+	it := itertools.Count(10)
+	expect := []int{10, 11, 12, 13}
+	result := []int{}
+
+	for i := 0; i < 4; i++ {
+		result = append(result, <-it)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testCycle(t *testing.T) {
+	it := itertools.Cycle([]int{1, 2, 3})
+	expect := []int{1, 2, 3, 1, 2, 3, 1}
+	result := []int{}
+
+	for i := 0; i < 7; i++ {
+		result = append(result, <-it)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testRepeat(t *testing.T) {
+	it := itertools.Repeat(39, 4)
+	expect := []int{39, 39, 39, 39}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testAccumulate(t *testing.T) {
+	it := itertools.Accumulate([]int{1, 2, 3, 4, 5})
+	expect := []int{1, 3, 6, 10, 15}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testAccumulateIface(t *testing.T) {
+	it := itertools.AccumulateIface([]Point{{1, 2}, {4, 5}, {1, 1}})
+	expect := []Point{{1, 2}, {5, 7}, {6, 8}}
+	result := []Point{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testChain(t *testing.T) {
+	it := itertools.Chain([]int{1, 2}, []int{5, 6}, []int{1, 1})
+	expect := []int{1, 2, 5, 6, 1, 1}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testChainFromIterable(t *testing.T) {
+	it := itertools.ChainFromIterable([][]int{{1, 2}, {5, 6}, {1, 1}})
+	expect := []int{1, 2, 5, 6, 1, 1}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testCompress(t *testing.T) {
+	data := []int{1, 2, 3, 4, 5, 6}
+	selectors := []bool{true, false, true, false, true}
+	it := itertools.Compress(data, selectors)
+	expect := []int{1, 3, 5}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testDropWhile(t *testing.T) {
+	pred := func (v int) bool { return v < 5 }
+	seq := []int{1, 4, 6, 4, 1}
+	it := itertools.DropWhile(pred, seq)
+	expect := []int{6, 4, 1}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testFilterFalse(t *testing.T) {
+	pred := func (v int) bool { return v % 2 == 0 }
+	seq := []int{0, 1, 2, 3, 4, 5}
+	it := itertools.FilterFalse(pred, seq)
+	expect := []int{0, 2, 4}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testGroupBy(t *testing.T) {
+	seq := []rune("aaaabbbccd")
+	it := itertools.GroupBy(seq)
+	expect := [][]string{{"a", "aaaa"}, {"b", "bbb"}, {"c", "cc"}, {"d", "d"}}
+	result := [][]string{}
+
+	for group := range it {
+		vs := []rune{}
+		for v := range group.Group {
+			vs = append(vs, v)
+		}
+		result = append(result, []string{string(group.Key), string(vs)})
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testGroupByIface(t *testing.T) {
+	type testGroup struct {
+		P Point
+		N int
+	}
+
+	seq := []Point {
+		{1, 2},
+		{1, 2},
+		{3, 2},
+		{3, 4},
+		{4, 3},
+		{4, 3},
+	}
+	expect := []testGroup{{Point{1, 2}, 2}, {Point{3, 2}, 1}, {Point{3, 4}, 1}, {Point{4, 3}, 2}}
+	result := []testGroup{}
+	it := itertools.GroupByIface(seq)
+
+	for group := range it {
+		n := 0
+		for _ = range group.Group {
+			n++
+		}
+		result = append(result, testGroup{group.Key, n})
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}

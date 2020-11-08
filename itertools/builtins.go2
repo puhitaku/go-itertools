@@ -1,0 +1,29 @@
+// builtins: Ported Python builtins
+
+package itertools
+
+
+type Zip2T[T, U any] struct {
+    v1 T
+    v2 U
+}
+
+func Zip2[T, U any](it1 []T, it2 []U) (chan Zip2T[T, U]) {
+	c := make(chan Zip2T[T, U])
+	l := 0
+
+	if len(it1) < len(it2) {
+		l = len(it1)
+	} else {
+		l = len(it2)
+	}
+
+	go func() {
+		for i := 0; i < l; i++ {
+			c <- Zip2T[T, U]{v1: it1[i], v2: it2[i]}
+		}
+		close(c)
+	}()
+
+	return c
+}

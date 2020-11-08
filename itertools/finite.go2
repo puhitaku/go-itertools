@@ -1,0 +1,181 @@
+// finite: Iterators terminating on the shortest input sequence
+
+package itertools
+func Accumulate[T Addable](iter []T) (chan T) {
+	c := make(chan T)
+	var accum T
+
+	go func() {
+		for _, v := range iter {
+			accum += v
+			c <- accum
+		}
+		close(c)
+	}()
+	return c
+}
+
+func AccumulateIface[T AddableIface[T]](iter []T) (chan T) {
+	c := make(chan T)
+	var accum T
+
+	go func() {
+		for _, v := range iter {
+			accum = accum.Add(v)
+			c <- accum
+		}
+		close(c)
+	}()
+	return c
+}
+
+func Chain[T any](iter ... []T) (chan T) {
+	c := make(chan T)
+
+	go func() {
+		for _, it := range iter {
+			for _, v := range it {
+				c <-v
+			}
+		}
+		close(c)
+	}()
+	return c
+}
+
+func ChainFromIterable[T any](iter [][]T) (chan T) {
+	return Chain(iter...)
+}
+
+func Compress[T any](data []T, selectors []bool) (chan T) {
+	c := make(chan T)
+
+	go func() {
+		z := Zip2(data, selectors)
+		for v := range z {
+			if v.v2 {
+				c <- v.v1
+			}
+		}
+		close(c)
+	}()
+	return c
+}
+
+func DropWhile[T any](pred func(v T) bool, seq []T) (chan T) {
+    c := make(chan T)
+
+    go func() {
+        start := 0
+        for start = range seq {
+            if !pred(seq[start]) {
+                break
+            }
+        }
+
+        for i := start; i < len(seq); i++ {
+            c <- seq[i]
+        }
+        close(c)
+    }()
+
+    return c
+}
+
+func FilterFalse[T any](pred func(v T) bool, seq []T) (chan T) {
+	c := make(chan T)
+
+	go func() {
+		for i := range seq {
+			if pred(seq[i]) {
+				c <- seq[i]
+			}
+		}
+		close(c)
+	}()
+
+	return c
+}
+
+type Group[T any] struct {
+	Key T
+	Group <-chan T
+}
+
+func GroupBy[T Comparable](seq []T) (chan Group[T]) {
+	c := make(chan Group[T])
+	var gc chan T
+
+	go func() {
+		defer func() {
+			close(c)
+			if gc != nil {
+				close(gc)
+			}
+		}()
+
+		if len(seq) == 0 {
+			return
+		}
+
+		var curKey T
+
+		for i := range seq {
+			if i == 0 || curKey != seq[i] {
+				if gc != nil {
+					close(gc)
+				}
+
+				curKey = seq[i]
+				gc = make(chan T)
+				c <- Group[T] {
+					Key: curKey,
+					Group: gc,
+				}
+			}
+
+			gc <- seq[i]
+		}
+	}()
+
+	return c
+}
+
+func GroupByIface[T ComparableIface[T]](seq []T) (chan Group[T]) {
+	c := make(chan Group[T])
+	var gc chan T
+
+	go func() {
+		defer func() {
+			close(c)
+			if gc != nil {
+				close(gc)
+			}
+		}()
+
+		if len(seq) == 0 {
+			return
+		}
+
+		var curKey T
+
+		for i := range seq {
+			if i == 0 || !curKey.Eq(seq[i]) {
+				if gc != nil {
+					close(gc)
+				}
+
+				curKey = seq[i]
+				gc = make(chan T)
+				c <- Group[T] {
+					Key: curKey,
+					Group: gc,
+				}
+			}
+
+			gc <- seq[i]
+		}
+	}()
+
+	return c
+}
