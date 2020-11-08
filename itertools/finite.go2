@@ -302,3 +302,46 @@ func ZipLongest3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3, f1 T1, f2 T2, f3 T3)
 
 	return c
 }
+
+func ZipLongest4[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4, f1 T1, f2 T2, f3 T3, f4 T4) chan Tuple4[T1, T2, T3, T4] {
+	c := make(chan Tuple4[T1, T2, T3, T4])
+	l := IntMax(len(s1), len(s2), len(s3), len(s4))
+
+	go func() {
+		for i := 0; i < l; i++ {
+			var v1 T1
+			var v2 T2
+			var v3 T3
+			var v4 T4
+
+			if i < len(s1) {
+				v1 = s1[i]
+			} else {
+				v1 = f1
+			}
+
+			if i < len(s2) {
+				v2 = s2[i]
+			} else {
+				v2 = f2
+			}
+
+			if i < len(s3) {
+				v3 = s3[i]
+			} else {
+				v3 = f3
+			}
+
+			if i < len(s4) {
+				v4 = s4[i]
+			} else {
+				v4 = f4
+			}
+
+			c <- Tuple4[T1, T2, T3, T4]{V1: v1, V2: v2, V3: v3, V4: v4}
+		}
+		close(c)
+	}()
+
+	return c
+}

@@ -331,11 +331,11 @@ func testTee(t *testing.T) {
 }
 
 func testZipLongest(t *testing.T) {
-	s1, s2, s3 := []int{1, 2}, []int{2, 3, 4, 5}, []int{9, 8, 7, 6, 5}
+	s1, s2, s3, s4 := []int{1, 2}, []int{2, 3, 4, 5}, []int{9, 8, 7, 6, 5}, []int{0, -1, -2}
 
 	// ZipLongest2
-	z2 := itertools.ZipLongest2(s1, s2, 111, 222)
-	expect := [][]int{{1, 2, 111, 111}, {2, 3, 4, 5}}
+	z2 := itertools.ZipLongest2(s1, s2, 11, 22)
+	expect := [][]int{{1, 2, 11, 11}, {2, 3, 4, 5}}
 
 	v1, v2 := []int{}, []int{}
 	for t := range z2 {
@@ -349,8 +349,8 @@ func testZipLongest(t *testing.T) {
 	}
 
 	// ZipLongest3
-	z3 := itertools.ZipLongest3(s1, s2, s3, 111, 222, 333)
-	expect = [][]int{{1, 2, 111, 111, 111}, {2, 3, 4, 5, 222}, {9, 8, 7, 6, 5}}
+	z3 := itertools.ZipLongest3(s1, s2, s3, 11, 22, 33)
+	expect = [][]int{{1, 2, 11, 11, 11}, {2, 3, 4, 5, 22}, {9, 8, 7, 6, 5}}
 
 	v1, v2, v3 := []int{}, []int{}, []int{}
 	for t := range z3 {
@@ -358,6 +358,21 @@ func testZipLongest(t *testing.T) {
 	}
 
 	result = [][]int{v1, v2, v3}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	// ZipLongest4
+	z4 := itertools.ZipLongest4(s1, s2, s3, s4, 11, 22, 33, 44)
+	expect = [][]int{{1, 2, 11, 11, 11}, {2, 3, 4, 5, 22}, {9, 8, 7, 6, 5}, {0, -1, -2, 44, 44}}
+
+	v1, v2, v3, v4 := []int{}, []int{}, []int{}, []int{}
+	for t := range z4 {
+		v1, v2, v3, v4 = append(v1, t.V1), append(v2, t.V2), append(v3, t.V3), append(v4, t.V4)
+	}
+
+	result = [][]int{v1, v2, v3, v4}
 
 	if !reflect.DeepEqual(result, expect) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
