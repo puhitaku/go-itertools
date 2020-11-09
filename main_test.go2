@@ -43,6 +43,8 @@ func TestFinite(t *testing.T) {
 
 func TestCombinatoric(t *testing.T) {
 	t.Run("Product", testProduct)
+	t.Run("Permutations", testPermutations)
+	t.Run("Combinations", testCombinations)
 }
 
 func TestBuiltins(t *testing.T) {
@@ -422,6 +424,60 @@ func testProduct(t *testing.T) {
 
 	for t := range p4 {
 		result = append(result, string(t.V1) + string(t.V2) + string(t.V3) + string(t.V4))
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
+
+func testPermutations(t *testing.T) {
+	s1, s2 := []rune("ABCD"), []rune("012")
+	it1 := itertools.Permutations(s1, 2)
+	expect := []string{"AB", "AC", "AD", "BA", "BC", "BD", "CA", "CB", "CD", "DA", "DB", "DC"}
+	result := []string{}
+
+	for v := range it1 {
+		result = append(result, string(v))
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	it2 := itertools.Permutations(s2, 0)
+	expect = []string{"012", "021", "102", "120", "201", "210"}
+	result = []string{}
+
+	for v := range it2 {
+		result = append(result, string(v))
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
+
+func testCombinations(t *testing.T) {
+	s1, s2 := []rune("ABCD"), []rune("0123")
+	it1 := itertools.Combinations(s1, 2)
+	expect := []string{"AB", "AC", "AD", "BC", "BD", "CD"}
+	result := []string{}
+
+	for v := range it1 {
+		result = append(result, string(v))
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	it2 := itertools.Combinations(s2, 3)
+	expect = []string{"012", "013", "023", "123"}
+	result = []string{}
+
+	for v := range it2 {
+		result = append(result, string(v))
 	}
 
 	if !reflect.DeepEqual(result, expect) {

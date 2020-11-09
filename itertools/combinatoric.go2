@@ -50,3 +50,120 @@ func Product4[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4) chan Tuple
 
 	return c
 }
+
+func Permutations[T any](iter []T, r int) chan []T {
+	c := make(chan []T)
+	var indices []int
+
+	yield := func() {
+		buf := make([]T, r)
+		for i := 0; i < r; i++ {
+			buf[i] = iter[indices[i]]
+		}
+		c <- buf
+	}
+
+	go func() {
+		// Ported from https://docs.python.org/ja/3/library/itertools.html#itertools.permutations
+		defer close(c)
+
+		n := len(iter)
+
+		if r == 0 {
+			r = n
+		}
+
+		if r > n {
+			return
+		}
+
+		indices = make([]int, n)
+		for i := range indices {
+			indices[i] = i
+		}
+
+		cycles := make([]int, r)
+		for i := range cycles {
+			cycles[i] = n-i
+		}
+
+		yield()
+
+		if n == 0 {
+			return
+		}
+
+outer:
+		for {
+			for i := r-1; i >= 0; i-- {
+				cycles[i]--
+				if cycles[i] == 0 {
+					index := indices[i]
+					for j := i; j < n-1; j++ {
+						indices[j] = indices[j+1]
+					}
+					indices[len(indices)-1] = index
+					cycles[i] = n - i
+				} else {
+					j := cycles[i]
+					indices[i], indices[len(indices)-j] = indices[len(indices)-j], indices[i]
+					yield()
+					continue outer
+				}
+			}
+			break
+		}
+	}()
+
+	return c
+}
+
+func Combinations[T any](iter []T, r int) chan []T {
+	c := make(chan []T)
+	var indices []int
+
+	yield := func() {
+		buf := make([]T, r)
+		for i := 0; i < r; i++ {
+			buf[i] = iter[indices[i]]
+		}
+		c <- buf
+	}
+
+	go func() {
+		// Ported from https://docs.python.org/ja/3/library/itertools.html#itertools.combinations
+		defer close(c)
+
+		n := len(iter)
+
+		if r > n {
+			return
+		}
+
+		indices = make([]int, n)
+		for i := range indices {
+			indices[i] = i
+		}
+
+		yield()
+
+		for {
+			i := r - 1
+			for ; i >= 0; i-- {
+				if indices[i] != i + n - r {
+					break
+				}
+			}
+			if i < 0 {
+				return
+			}
+			indices[i] += 1
+			for j := i+1; j < r; j++ {
+				indices[j] = indices[j-1] + 1
+			}
+			yield()
+		}
+	}()
+
+	return c
+}
