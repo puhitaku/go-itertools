@@ -1,0 +1,22 @@
+package itertools
+
+func ToSlice[T any](c chan T) []T {
+	var s []T
+	for v := range c {
+		s = append(s, v)
+	}
+	return s
+}
+
+func ToChan[T any](s []T) <-chan T {
+	c := make(chan T)
+
+	go func(){
+		defer close(c)
+		for i := range(s) {
+			c <- s[i]
+		}
+	}()
+
+	return c
+}

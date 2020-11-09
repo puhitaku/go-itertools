@@ -22,6 +22,7 @@ func (p Point) Eq(v Point) bool {
 func TestInfinite(t *testing.T) {
 	t.Run("Count", testCount)
 	t.Run("Cycle", testCycle)
+	t.Run("CycleS", testCycleS)
 	t.Run("Repeat", testRepeat)
 }
 
@@ -67,7 +68,21 @@ func testCount(t *testing.T) {
 }
 
 func testCycle(t *testing.T) {
-	it := itertools.Cycle([]int{1, 2, 3})
+	it := itertools.Cycle(itertools.ToChan([]int{1, 2, 3}))
+	expect := []int{1, 2, 3, 1, 2, 3, 1}
+	result := []int{}
+
+	for i := 0; i < 7; i++ {
+		result = append(result, <-it)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testCycleS(t *testing.T) {
+	it := itertools.CycleS([]int{1, 2, 3})
 	expect := []int{1, 2, 3, 1, 2, 3, 1}
 	result := []int{}
 
