@@ -167,3 +167,50 @@ func Combinations[T any](iter []T, r int) chan []T {
 
 	return c
 }
+
+func CombinationsWithReplacement[T any](iter []T, r int) chan []T {
+	c := make(chan []T)
+	var indices []int
+
+	yield := func() {
+		buf := make([]T, r)
+		for i := 0; i < r; i++ {
+			buf[i] = iter[indices[i]]
+		}
+		c <- buf
+	}
+
+	go func() {
+		// Ported from https://docs.python.org/ja/3/library/itertools.html#itertools.combinations_with_replacement
+		defer close(c)
+
+		n := len(iter)
+
+		if n == 0 && r > 0 {
+			return
+		}
+
+		indices = make([]int, r)
+
+		yield()
+
+		for {
+			i := r - 1
+			for ; i >= 0; i-- {
+				if indices[i] != n - 1 {
+					break
+				}
+			}
+			if i < 0 {
+				return
+			}
+			index := indices[i]
+			for j := i; j < r; j++ {
+				indices[j] = index + 1
+			}
+			yield()
+		}
+	}()
+
+	return c
+}

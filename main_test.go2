@@ -45,6 +45,7 @@ func TestCombinatoric(t *testing.T) {
 	t.Run("Product", testProduct)
 	t.Run("Permutations", testPermutations)
 	t.Run("Combinations", testCombinations)
+	t.Run("CombinationsWithReplacement", testCombinationsWithReplacement)
 }
 
 func TestBuiltins(t *testing.T) {
@@ -477,6 +478,21 @@ func testCombinations(t *testing.T) {
 	result = []string{}
 
 	for v := range it2 {
+		result = append(result, string(v))
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
+
+func testCombinationsWithReplacement(t *testing.T) {
+	s1 := []rune("ABC")
+	it1 := itertools.CombinationsWithReplacement(s1, 2)
+	expect := []string{"AA", "AB", "AC", "BB", "BC", "CC"}
+	result := []string{}
+
+	for v := range it1 {
 		result = append(result, string(v))
 	}
 
