@@ -19,6 +19,11 @@ func (p Point) Eq(v Point) bool {
 	return p.X == v.X && p.Y == v.Y
 }
 
+func TestConv(t *testing.T) {
+	t.Run("ToSlice", testToSlice)
+	t.Run("ToChan", testToChan)
+}
+
 func TestInfinite(t *testing.T) {
 	t.Run("Count", testCount)
 	t.Run("Cycle", testCycle)
@@ -51,6 +56,35 @@ func TestCombinatoric(t *testing.T) {
 
 func TestBuiltins(t *testing.T) {
 	//t.Run("Zip", testZip)
+}
+
+func testToSlice(t *testing.T) {
+	c := make(chan int)
+	go func() {
+		for i := 0; i < 5; i++ {
+			c <- i
+		}
+		close(c)
+	}()
+
+	result := itertools.ToSlice(c)
+	expect := []int{0, 1, 2, 3, 4}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testToChan(t *testing.T) {
+	result := []int{}
+	expect := []int{0, 1, 2, 3, 4}
+	for v := range itertools.ToChan([]int{0, 1, 2, 3, 4}) {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
 }
 
 func testCount(t *testing.T) {
