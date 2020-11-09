@@ -1,0 +1,52 @@
+package itertools
+
+func Product2[T1, T2 any](s1 []T1, s2 []T2) chan Tuple2[T1, T2] {
+	c := make(chan Tuple2[T1, T2])
+
+	go func() {
+		for i1 := range s1 {
+			for i2 := range s2 {
+				c <- Tuple2[T1, T2]{V1: s1[i1], V2: s2[i2]}
+			}
+		}
+		close(c)
+	}()
+
+	return c
+}
+
+func Product3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3) chan Tuple3[T1, T2, T3] {
+	c := make(chan Tuple3[T1, T2, T3])
+
+	go func() {
+		for i1 := range s1 {
+			for i2 := range s2 {
+				for i3 := range s3 {
+					c <- Tuple3[T1, T2, T3]{V1: s1[i1], V2: s2[i2], V3: s3[i3]}
+				}
+			}
+		}
+		close(c)
+	}()
+
+	return c
+}
+
+func Product4[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4) chan Tuple4[T1, T2, T3, T4] {
+	c := make(chan Tuple4[T1, T2, T3, T4])
+
+	go func() {
+		for i1 := range s1 {
+			for i2 := range s2 {
+				for i3 := range s3 {
+					for i4 := range s4 {
+						c <- Tuple4[T1, T2, T3, T4]{V1: s1[i1], V2: s2[i2], V3: s3[i3], V4: s4[i4]}
+					}
+				}
+			}
+		}
+		close(c)
+	}()
+
+	return c
+}
