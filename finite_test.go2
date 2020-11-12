@@ -21,17 +21,11 @@ func (p Point) Eq(v Point) bool {
 
 func TestFinite(t *testing.T) {
 	t.Run("Accumulate", testAccumulate)
-	t.Run("AccumulateS", testAccumulateS)
 	t.Run("AccumulateIface", testAccumulateIface)
-	t.Run("AccumulateIfaceS", testAccumulateIfaceS)
 	t.Run("Chain", testChain)
-	t.Run("ChainS", testChainS)
 	t.Run("ChainFromIterable", testChainFromIterable)
-	t.Run("ChainFromIterableS", testChainFromIterableS)
 	t.Run("Compress", testCompress)
-	t.Run("CompressS", testCompressS)
 	t.Run("DropWhile", testDropWhile)
-	t.Run("DropWhileS", testDropWhileS)
 	t.Run("TakeWhile", testTakeWhile)
 	t.Run("FilterFalse", testFilterFalse)
 	t.Run("GroupBy", testGroupBy)
@@ -42,211 +36,118 @@ func TestFinite(t *testing.T) {
 }
 
 func testAccumulate(t *testing.T) {
-	it := itertools.Accumulate(itertools.ToChan([]int{1, 2, 3, 4, 5}))
+	input := []int{1, 2, 3, 4, 5}
+	output := itertools.ToSlice(itertools.Accumulate(itertools.ToChan(input)))
 	expect := []int{1, 3, 6, 10, 15}
-	result := []int{}
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
-}
 
-func testAccumulateS(t *testing.T) {
-	it := itertools.AccumulateS([]int{1, 2, 3, 4, 5})
-	expect := []int{1, 3, 6, 10, 15}
-	result := []int{}
+	output = itertools.ToSlice(itertools.AccumulateS(input))
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
 
 func testAccumulateIface(t *testing.T) {
-	it := itertools.AccumulateIface(itertools.ToChan([]Point{{1, 2}, {4, 5}, {1, 1}}))
+	input := []Point{{1, 2}, {4, 5}, {1, 1}}
+	output := itertools.ToSlice(itertools.AccumulateIface(itertools.ToChan(input)))
 	expect := []Point{{1, 2}, {5, 7}, {6, 8}}
-	result := []Point{}
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
-}
 
-func testAccumulateIfaceS(t *testing.T) {
-	it := itertools.AccumulateIfaceS([]Point{{1, 2}, {4, 5}, {1, 1}})
-	expect := []Point{{1, 2}, {5, 7}, {6, 8}}
-	result := []Point{}
+	output = itertools.ToSlice(itertools.AccumulateIfaceS(input))
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
 
 func testChain(t *testing.T) {
-	c1, c2, c3 := itertools.ToChan([]int{1, 2}), itertools.ToChan([]int{5, 6}), itertools.ToChan([]int{1, 1})
-	it := itertools.Chain(c1, c2, c3)
+	s1, s2, s3 := []int{1, 2}, []int{5, 6}, []int{1, 1}
+	c1, c2, c3 := itertools.ToChan(s1), itertools.ToChan(s2), itertools.ToChan(s3)
+	output := itertools.ToSlice(itertools.Chain(c1, c2, c3))
 	expect := []int{1, 2, 5, 6, 1, 1}
-	result := []int{}
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
-}
 
-func testChainS(t *testing.T) {
-	it := itertools.ChainS([]int{1, 2}, []int{5, 6}, []int{1, 1})
-	expect := []int{1, 2, 5, 6, 1, 1}
-	result := []int{}
+	output = itertools.ToSlice(itertools.ChainS(s1, s2, s3))
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
 
 func testChainFromIterable(t *testing.T) {
-	c1, c2, c3 := itertools.ToChan([]int{1, 2}), itertools.ToChan([]int{5, 6}), itertools.ToChan([]int{1, 1})
-	it := itertools.ChainFromIterable([]<-chan int{c1, c2, c3})
+	s1, s2, s3 := []int{1, 2}, []int{5, 6}, []int{1, 1}
+	c1, c2, c3 := itertools.ToChan(s1), itertools.ToChan(s2), itertools.ToChan(s3)
+	output := itertools.ToSlice(itertools.ChainFromIterable([]<-chan int{c1, c2, c3}))
 	expect := []int{1, 2, 5, 6, 1, 1}
-	result := []int{}
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
-}
 
-func testChainFromIterableS(t *testing.T) {
-	it := itertools.ChainFromIterableS([][]int{{1, 2}, {5, 6}, {1, 1}})
-	expect := []int{1, 2, 5, 6, 1, 1}
-	result := []int{}
+	output = itertools.ToSlice(itertools.ChainFromIterableS([][]int{s1, s2, s3}))
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
 
 func testCompress(t *testing.T) {
-	data := itertools.ToChan([]int{1, 2, 3, 4, 5, 6})
-	selectors := itertools.ToChan([]bool{true, false, true, false, true})
-	it := itertools.Compress(data, selectors)
+	d := []int{1, 2, 3, 4, 5, 6}
+	sel := []bool{true, false, true, false, true}
+	output := itertools.ToSlice(itertools.Compress(itertools.ToChan(d), itertools.ToChan(sel)))
 	expect := []int{1, 3, 5}
-	result := []int{}
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
-}
 
-func testCompressS(t *testing.T) {
-	data := []int{1, 2, 3, 4, 5, 6}
-	selectors := []bool{true, false, true, false, true}
-	it := itertools.CompressS(data, selectors)
-	expect := []int{1, 3, 5}
-	result := []int{}
+	output = itertools.ToSlice(itertools.CompressS(d, sel))
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
 
 func testDropWhile(t *testing.T) {
 	pred := func(v int) bool { return v < 5 }
-	seq := itertools.ToChan([]int{1, 4, 6, 4, 1})
-	it := itertools.DropWhile(pred, seq)
+	seq := []int{1, 4, 6, 4, 1}
+	output := itertools.ToSlice(itertools.DropWhile(pred, itertools.ToChan(seq)))
 	expect := []int{6, 4, 1}
-	result := []int{}
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
-}
 
-func testDropWhileS(t *testing.T) {
-	pred := func(v int) bool { return v < 5 }
-	seq := []int{1, 4, 6, 4, 1}
-	it := itertools.DropWhileS(pred, seq)
-	expect := []int{6, 4, 1}
-	result := []int{}
+	output = itertools.ToSlice(itertools.DropWhileS(pred, seq))
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
 
 func testTakeWhile(t *testing.T) {
 	pred := func(v int) bool { return v < 5 }
-	seq := itertools.ToChan([]int{1, 4, 6, 4, 1})
-	it := itertools.TakeWhile(pred, seq)
+	seq := []int{1, 4, 6, 4, 1}
+	output := itertools.ToSlice(itertools.TakeWhile(pred, itertools.ToChan(seq)))
 	expect := []int{1, 4}
-	result := []int{}
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
-}
 
-func testTakeWhileS(t *testing.T) {
-	pred := func(v int) bool { return v < 5 }
-	seq := []int{1, 4, 6, 4, 1}
-	it := itertools.TakeWhileS(pred, seq)
-	expect := []int{1, 4}
-	result := []int{}
+	output = itertools.ToSlice(itertools.TakeWhileS(pred, seq))
 
-	for v := range it {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
@@ -255,17 +156,17 @@ func testFilterFalse(t *testing.T) {
 	pred := func(v int) bool { return v%2 == 0 }
 	seq := []int{0, 1, 2, 3, 4, 5}
 
-	result := itertools.ToSlice(itertools.FilterFalse(pred, itertools.ToChan(seq)))
+	output := itertools.ToSlice(itertools.FilterFalse(pred, itertools.ToChan(seq)))
 	expect := []int{1, 3, 5}
 
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 
-	result = itertools.ToSlice(itertools.FilterFalseS(pred, seq))
+	output = itertools.ToSlice(itertools.FilterFalseS(pred, seq))
 	expect = []int{1, 3, 5}
 
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
