@@ -1,6 +1,6 @@
 package itertools
 
-func ToSlice[T any](c chan T) []T {
+func ToSlice[T any](c <-chan T) []T {
 	var s []T
 	for v := range c {
 		s = append(s, v)
