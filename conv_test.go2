@@ -21,22 +21,22 @@ func testToSlice(t *testing.T) {
 		close(c)
 	}()
 
-	result := itertools.ToSlice(c)
+	output := itertools.ToSlice(c)
 	expect := []int{0, 1, 2, 3, 4}
 
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
 
 func testToChan(t *testing.T) {
-	result := []int{}
+	output := []int{}
 	expect := []int{0, 1, 2, 3, 4}
 	for v := range itertools.ToChan([]int{0, 1, 2, 3, 4}) {
-		result = append(result, v)
+		output = append(output, v)
 	}
 
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }

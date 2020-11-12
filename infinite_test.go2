@@ -17,13 +17,13 @@ func TestInfinite(t *testing.T) {
 func testCount(t *testing.T) {
 	it := itertools.Count(10)
 	expect := []int{10, 11, 12, 13}
-	result := []int{}
+	output := []int{}
 
 	for i := 0; i < 4; i++ {
-		result = append(result, <-it)
+		output = append(output, <-it)
 	}
 
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
@@ -31,13 +31,13 @@ func testCount(t *testing.T) {
 func testCycle(t *testing.T) {
 	it := itertools.Cycle(itertools.ToChan([]int{1, 2, 3}))
 	expect := []int{1, 2, 3, 1, 2, 3, 1}
-	result := []int{}
+	output := []int{}
 
 	for i := 0; i < 7; i++ {
-		result = append(result, <-it)
+		output = append(output, <-it)
 	}
 
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
@@ -45,13 +45,13 @@ func testCycle(t *testing.T) {
 func testCycleS(t *testing.T) {
 	it := itertools.CycleS([]int{1, 2, 3})
 	expect := []int{1, 2, 3, 1, 2, 3, 1}
-	result := []int{}
+	output := []int{}
 
 	for i := 0; i < 7; i++ {
-		result = append(result, <-it)
+		output = append(output, <-it)
 	}
 
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
@@ -59,13 +59,13 @@ func testCycleS(t *testing.T) {
 func testRepeat(t *testing.T) {
 	it := itertools.Repeat(39, 4)
 	expect := []int{39, 39, 39, 39}
-	result := []int{}
+	output := []int{}
 
 	for v := range it {
-		result = append(result, v)
+		output = append(output, v)
 	}
 
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
