@@ -73,6 +73,32 @@ func FilterS[T any](fn func(v T) bool, it []T) <-chan T {
 	return c
 }
 
+func Map[T1, T2 any](fn func(v T1) T2, it <-chan T1) <-chan T2 {
+	c := make(chan T2)
+
+	go func() {
+		for v := range it {
+			c <- fn(v)
+		}
+		close(c)
+	}()
+
+	return c
+}
+
+func MapS[T1, T2 any](fn func(v T1) T2, it []T1) <-chan T2 {
+	c := make(chan T2)
+
+	go func() {
+		for i := range it {
+			c <- fn(it[i])
+		}
+		close(c)
+	}()
+
+	return c
+}
+
 func Min[T Ordered](it ...T) T {
 	sort.Sort(toSortable(it))
 	return it[0]
