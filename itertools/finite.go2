@@ -163,7 +163,23 @@ func DropWhileS[T any](pred func(v T) bool, seq []T) chan T {
 	return c
 }
 
-func TakeWhile[T any](pred func(v T) bool, seq []T) chan T {
+func TakeWhile[T any](pred func(v T) bool, seq <-chan T) chan T {
+	c := make(chan T)
+
+	go func() {
+		for v := range seq {
+			if !pred(v) {
+				break
+			}
+			c <- v
+		}
+		close(c)
+	}()
+
+	return c
+}
+
+func TakeWhileS[T any](pred func(v T) bool, seq []T) chan T {
 	c := make(chan T)
 
 	go func() {

@@ -221,8 +221,24 @@ func testDropWhileS(t *testing.T) {
 
 func testTakeWhile(t *testing.T) {
 	pred := func(v int) bool { return v < 5 }
-	seq := []int{1, 4, 6, 4, 1}
+	seq := itertools.ToChan([]int{1, 4, 6, 4, 1})
 	it := itertools.TakeWhile(pred, seq)
+	expect := []int{1, 4}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testTakeWhileS(t *testing.T) {
+	pred := func(v int) bool { return v < 5 }
+	seq := []int{1, 4, 6, 4, 1}
+	it := itertools.TakeWhileS(pred, seq)
 	expect := []int{1, 4}
 	result := []int{}
 
