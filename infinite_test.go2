@@ -1,0 +1,71 @@
+package main
+
+import (
+	"reflect"
+	"testing"
+
+	"github.com/puhitaku/go2-itertools/itertools"
+)
+
+func TestInfinite(t *testing.T) {
+	t.Run("Count", testCount)
+	t.Run("Cycle", testCycle)
+	t.Run("CycleS", testCycleS)
+	t.Run("Repeat", testRepeat)
+}
+
+func testCount(t *testing.T) {
+	it := itertools.Count(10)
+	expect := []int{10, 11, 12, 13}
+	result := []int{}
+
+	for i := 0; i < 4; i++ {
+		result = append(result, <-it)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testCycle(t *testing.T) {
+	it := itertools.Cycle(itertools.ToChan([]int{1, 2, 3}))
+	expect := []int{1, 2, 3, 1, 2, 3, 1}
+	result := []int{}
+
+	for i := 0; i < 7; i++ {
+		result = append(result, <-it)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testCycleS(t *testing.T) {
+	it := itertools.CycleS([]int{1, 2, 3})
+	expect := []int{1, 2, 3, 1, 2, 3, 1}
+	result := []int{}
+
+	for i := 0; i < 7; i++ {
+		result = append(result, <-it)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testRepeat(t *testing.T) {
+	it := itertools.Repeat(39, 4)
+	expect := []int{39, 39, 39, 39}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}

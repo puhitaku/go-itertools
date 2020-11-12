@@ -1,0 +1,20 @@
+package itertools
+
+import (
+	"math/rand"
+	"time"
+)
+
+func ToChanRandom[T any](s []T) <-chan T {
+	c := make(chan T)
+
+	go func(){
+		defer close(c)
+		for i := range(s) {
+			c <- s[i]
+			time.Sleep(time.Duration(rand.Intn(10)))
+		}
+	}()
+
+	return c
+}

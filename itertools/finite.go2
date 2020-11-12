@@ -2,7 +2,21 @@
 
 package itertools
 
-func Accumulate[T Addable](iter []T) chan T {
+func Accumulate[T Addable](iter <-chan T) chan T {
+	c := make(chan T)
+	var accum T
+
+	go func() {
+		for v := range iter {
+			accum += v
+			c <- accum
+		}
+		close(c)
+	}()
+	return c
+}
+
+func AccumulateS[T Addable](iter []T) chan T {
 	c := make(chan T)
 	var accum T
 
@@ -16,7 +30,21 @@ func Accumulate[T Addable](iter []T) chan T {
 	return c
 }
 
-func AccumulateIface[T AddableIface[T]](iter []T) chan T {
+func AccumulateIface[T AddableIface[T]](iter <- chan T) chan T {
+	c := make(chan T)
+	var accum T
+
+	go func() {
+		for v := range iter {
+			accum = accum.Add(v)
+			c <- accum
+		}
+		close(c)
+	}()
+	return c
+}
+
+func AccumulateIfaceS[T AddableIface[T]](iter []T) chan T {
 	c := make(chan T)
 	var accum T
 
@@ -30,7 +58,21 @@ func AccumulateIface[T AddableIface[T]](iter []T) chan T {
 	return c
 }
 
-func Chain[T any](iter ...[]T) chan T {
+func Chain[T any](iter ...<-chan T) chan T {
+	c := make(chan T)
+
+	go func() {
+		for _, it := range iter {
+			for v := range it {
+				c <- v
+			}
+		}
+		close(c)
+	}()
+	return c
+}
+
+func ChainS[T any](iter ...[]T) chan T {
 	c := make(chan T)
 
 	go func() {
@@ -44,11 +86,15 @@ func Chain[T any](iter ...[]T) chan T {
 	return c
 }
 
-func ChainFromIterable[T any](iter [][]T) chan T {
+func ChainFromIterable[T any](iter []<-chan T) chan T {
 	return Chain(iter...)
 }
 
-func Compress[T any](data []T, selectors []bool) chan T {
+func ChainFromIterableS[T any](iter [][]T) chan T {
+	return ChainS(iter...)
+}
+
+func Compress[T any](data <-chan T, selectors <-chan bool) chan T {
 	c := make(chan T)
 
 	go func() {
@@ -63,7 +109,41 @@ func Compress[T any](data []T, selectors []bool) chan T {
 	return c
 }
 
-func DropWhile[T any](pred func(v T) bool, seq []T) chan T {
+func CompressS[T any](data []T, selectors []bool) chan T {
+	c := make(chan T)
+
+	go func() {
+		z := Zip2S(data, selectors)
+		for v := range z {
+			if v.V2 {
+				c <- v.V1
+			}
+		}
+		close(c)
+	}()
+	return c
+}
+
+func DropWhile[T any](pred func(v T) bool, seq <-chan T) chan T {
+	c := make(chan T)
+	drop := true
+
+	go func() {
+		for v := range seq {
+			if drop && !pred(v) {
+				drop = false
+			}
+			if !drop {
+				c <- v
+			}
+		}
+		close(c)
+	}()
+
+	return c
+}
+
+func DropWhileS[T any](pred func(v T) bool, seq []T) chan T {
 	c := make(chan T)
 
 	go func() {

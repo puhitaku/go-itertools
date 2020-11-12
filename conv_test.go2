@@ -1,0 +1,42 @@
+package main
+
+import (
+	"reflect"
+	"testing"
+
+	"github.com/puhitaku/go2-itertools/itertools"
+)
+
+func TestConv(t *testing.T) {
+	t.Run("ToSlice", testToSlice)
+	t.Run("ToChan", testToChan)
+}
+
+func testToSlice(t *testing.T) {
+	c := make(chan int)
+	go func() {
+		for i := 0; i < 5; i++ {
+			c <- i
+		}
+		close(c)
+	}()
+
+	result := itertools.ToSlice(c)
+	expect := []int{0, 1, 2, 3, 4}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testToChan(t *testing.T) {
+	result := []int{}
+	expect := []int{0, 1, 2, 3, 4}
+	for v := range itertools.ToChan([]int{0, 1, 2, 3, 4}) {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}

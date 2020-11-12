@@ -19,25 +19,19 @@ func (p Point) Eq(v Point) bool {
 	return p.X == v.X && p.Y == v.Y
 }
 
-func TestConv(t *testing.T) {
-	t.Run("ToSlice", testToSlice)
-	t.Run("ToChan", testToChan)
-}
-
-func TestInfinite(t *testing.T) {
-	t.Run("Count", testCount)
-	t.Run("Cycle", testCycle)
-	t.Run("CycleS", testCycleS)
-	t.Run("Repeat", testRepeat)
-}
-
 func TestFinite(t *testing.T) {
 	t.Run("Accumulate", testAccumulate)
+	t.Run("AccumulateS", testAccumulateS)
 	t.Run("AccumulateIface", testAccumulateIface)
+	t.Run("AccumulateIfaceS", testAccumulateIfaceS)
 	t.Run("Chain", testChain)
+	t.Run("ChainS", testChainS)
 	t.Run("ChainFromIterable", testChainFromIterable)
+	t.Run("ChainFromIterableS", testChainFromIterableS)
 	t.Run("Compress", testCompress)
+	t.Run("CompressS", testCompressS)
 	t.Run("DropWhile", testDropWhile)
+	t.Run("DropWhileS", testDropWhileS)
 	t.Run("TakeWhile", testTakeWhile)
 	t.Run("FilterFalse", testFilterFalse)
 	t.Run("GroupBy", testGroupBy)
@@ -47,91 +41,9 @@ func TestFinite(t *testing.T) {
 	t.Run("ZipLongest", testZipLongest)
 }
 
-func TestCombinatoric(t *testing.T) {
-	t.Run("Product", testProduct)
-	t.Run("Permutations", testPermutations)
-	t.Run("Combinations", testCombinations)
-	t.Run("CombinationsWithReplacement", testCombinationsWithReplacement)
-}
-
-func TestBuiltins(t *testing.T) {
-	//t.Run("Zip", testZip)
-}
-
-func testToSlice(t *testing.T) {
-	c := make(chan int)
-	go func() {
-		for i := 0; i < 5; i++ {
-			c <- i
-		}
-		close(c)
-	}()
-
-	result := itertools.ToSlice(c)
-	expect := []int{0, 1, 2, 3, 4}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatal("the result did not match with the expected slice")
-	}
-}
-
-func testToChan(t *testing.T) {
-	result := []int{}
-	expect := []int{0, 1, 2, 3, 4}
-	for v := range itertools.ToChan([]int{0, 1, 2, 3, 4}) {
-		result = append(result, v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatal("the result did not match with the expected slice")
-	}
-}
-
-func testCount(t *testing.T) {
-	it := itertools.Count(10)
-	expect := []int{10, 11, 12, 13}
-	result := []int{}
-
-	for i := 0; i < 4; i++ {
-		result = append(result, <-it)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatal("the result did not match with the expected slice")
-	}
-}
-
-func testCycle(t *testing.T) {
-	it := itertools.Cycle(itertools.ToChan([]int{1, 2, 3}))
-	expect := []int{1, 2, 3, 1, 2, 3, 1}
-	result := []int{}
-
-	for i := 0; i < 7; i++ {
-		result = append(result, <-it)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatal("the result did not match with the expected slice")
-	}
-}
-
-func testCycleS(t *testing.T) {
-	it := itertools.CycleS([]int{1, 2, 3})
-	expect := []int{1, 2, 3, 1, 2, 3, 1}
-	result := []int{}
-
-	for i := 0; i < 7; i++ {
-		result = append(result, <-it)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatal("the result did not match with the expected slice")
-	}
-}
-
-func testRepeat(t *testing.T) {
-	it := itertools.Repeat(39, 4)
-	expect := []int{39, 39, 39, 39}
+func testAccumulate(t *testing.T) {
+	it := itertools.Accumulate(itertools.ToChan([]int{1, 2, 3, 4, 5}))
+	expect := []int{1, 3, 6, 10, 15}
 	result := []int{}
 
 	for v := range it {
@@ -143,8 +55,8 @@ func testRepeat(t *testing.T) {
 	}
 }
 
-func testAccumulate(t *testing.T) {
-	it := itertools.Accumulate([]int{1, 2, 3, 4, 5})
+func testAccumulateS(t *testing.T) {
+	it := itertools.AccumulateS([]int{1, 2, 3, 4, 5})
 	expect := []int{1, 3, 6, 10, 15}
 	result := []int{}
 
@@ -158,7 +70,21 @@ func testAccumulate(t *testing.T) {
 }
 
 func testAccumulateIface(t *testing.T) {
-	it := itertools.AccumulateIface([]Point{{1, 2}, {4, 5}, {1, 1}})
+	it := itertools.AccumulateIface(itertools.ToChan([]Point{{1, 2}, {4, 5}, {1, 1}}))
+	expect := []Point{{1, 2}, {5, 7}, {6, 8}}
+	result := []Point{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testAccumulateIfaceS(t *testing.T) {
+	it := itertools.AccumulateIfaceS([]Point{{1, 2}, {4, 5}, {1, 1}})
 	expect := []Point{{1, 2}, {5, 7}, {6, 8}}
 	result := []Point{}
 
@@ -172,7 +98,22 @@ func testAccumulateIface(t *testing.T) {
 }
 
 func testChain(t *testing.T) {
-	it := itertools.Chain([]int{1, 2}, []int{5, 6}, []int{1, 1})
+	c1, c2, c3 := itertools.ToChan([]int{1, 2}), itertools.ToChan([]int{5, 6}), itertools.ToChan([]int{1, 1})
+	it := itertools.Chain(c1, c2, c3)
+	expect := []int{1, 2, 5, 6, 1, 1}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testChainS(t *testing.T) {
+	it := itertools.ChainS([]int{1, 2}, []int{5, 6}, []int{1, 1})
 	expect := []int{1, 2, 5, 6, 1, 1}
 	result := []int{}
 
@@ -186,7 +127,22 @@ func testChain(t *testing.T) {
 }
 
 func testChainFromIterable(t *testing.T) {
-	it := itertools.ChainFromIterable([][]int{{1, 2}, {5, 6}, {1, 1}})
+	c1, c2, c3 := itertools.ToChan([]int{1, 2}), itertools.ToChan([]int{5, 6}), itertools.ToChan([]int{1, 1})
+	it := itertools.ChainFromIterable([]<-chan int{c1, c2, c3})
+	expect := []int{1, 2, 5, 6, 1, 1}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testChainFromIterableS(t *testing.T) {
+	it := itertools.ChainFromIterableS([][]int{{1, 2}, {5, 6}, {1, 1}})
 	expect := []int{1, 2, 5, 6, 1, 1}
 	result := []int{}
 
@@ -200,9 +156,25 @@ func testChainFromIterable(t *testing.T) {
 }
 
 func testCompress(t *testing.T) {
+	data := itertools.ToChan([]int{1, 2, 3, 4, 5, 6})
+	selectors := itertools.ToChan([]bool{true, false, true, false, true})
+	it := itertools.Compress(data, selectors)
+	expect := []int{1, 3, 5}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testCompressS(t *testing.T) {
 	data := []int{1, 2, 3, 4, 5, 6}
 	selectors := []bool{true, false, true, false, true}
-	it := itertools.Compress(data, selectors)
+	it := itertools.CompressS(data, selectors)
 	expect := []int{1, 3, 5}
 	result := []int{}
 
@@ -217,8 +189,24 @@ func testCompress(t *testing.T) {
 
 func testDropWhile(t *testing.T) {
 	pred := func(v int) bool { return v < 5 }
-	seq := []int{1, 4, 6, 4, 1}
+	seq := itertools.ToChan([]int{1, 4, 6, 4, 1})
 	it := itertools.DropWhile(pred, seq)
+	expect := []int{6, 4, 1}
+	result := []int{}
+
+	for v := range it {
+		result = append(result, v)
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+}
+
+func testDropWhileS(t *testing.T) {
+	pred := func(v int) bool { return v < 5 }
+	seq := []int{1, 4, 6, 4, 1}
+	it := itertools.DropWhileS(pred, seq)
 	expect := []int{6, 4, 1}
 	result := []int{}
 
@@ -429,121 +417,6 @@ func testZipLongest(t *testing.T) {
 	}
 
 	result = [][]int{v1, v2, v3, v4}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
-	}
-}
-
-func testProduct(t *testing.T) {
-	s1, s2, s3, s4 := []rune("AB"), []rune("xy"), []rune("12"), []rune("!?")
-
-	// Product2
-	p2 := itertools.Product2(s1, s2)
-	expect := []string{"Ax", "Ay", "Bx", "By"}
-	result := []string{}
-
-	for t := range p2 {
-		result = append(result, string(t.V1) + string(t.V2))
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
-	}
-
-	// Product3
-	p3 := itertools.Product3(s1, s2, s3)
-	expect = []string{"Ax1", "Ax2", "Ay1", "Ay2", "Bx1", "Bx2", "By1", "By2"}
-	result = []string{}
-
-	for t := range p3 {
-		result = append(result, string(t.V1) + string(t.V2) + string(t.V3))
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
-	}
-
-	// Product4
-	p4 := itertools.Product4(s1, s2, s3, s4)
-	expect = []string{
-		"Ax1!", "Ax1?", "Ax2!", "Ax2?", "Ay1!", "Ay1?", "Ay2!", "Ay2?",
-		"Bx1!", "Bx1?", "Bx2!", "Bx2?", "By1!", "By1?", "By2!", "By2?",
-	}
-	result = []string{}
-
-	for t := range p4 {
-		result = append(result, string(t.V1) + string(t.V2) + string(t.V3) + string(t.V4))
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
-	}
-}
-
-func testPermutations(t *testing.T) {
-	s1, s2 := []rune("ABCD"), []rune("012")
-	it1 := itertools.Permutations(s1, 2)
-	expect := []string{"AB", "AC", "AD", "BA", "BC", "BD", "CA", "CB", "CD", "DA", "DB", "DC"}
-	result := []string{}
-
-	for v := range it1 {
-		result = append(result, string(v))
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
-	}
-
-	it2 := itertools.Permutations(s2, 0)
-	expect = []string{"012", "021", "102", "120", "201", "210"}
-	result = []string{}
-
-	for v := range it2 {
-		result = append(result, string(v))
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
-	}
-}
-
-func testCombinations(t *testing.T) {
-	s1, s2 := []rune("ABCD"), []rune("0123")
-	it1 := itertools.Combinations(s1, 2)
-	expect := []string{"AB", "AC", "AD", "BC", "BD", "CD"}
-	result := []string{}
-
-	for v := range it1 {
-		result = append(result, string(v))
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
-	}
-
-	it2 := itertools.Combinations(s2, 3)
-	expect = []string{"012", "013", "023", "123"}
-	result = []string{}
-
-	for v := range it2 {
-		result = append(result, string(v))
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
-	}
-}
-
-func testCombinationsWithReplacement(t *testing.T) {
-	s1 := []rune("ABC")
-	it1 := itertools.CombinationsWithReplacement(s1, 2)
-	expect := []string{"AA", "AB", "AC", "BB", "BC", "CC"}
-	result := []string{}
-
-	for v := range it1 {
-		result = append(result, string(v))
-	}
 
 	if !reflect.DeepEqual(result, expect) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)

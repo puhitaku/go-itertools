@@ -1,0 +1,135 @@
+package main
+
+import (
+	"math/rand"
+	"reflect"
+	"testing"
+	"time"
+
+	"github.com/puhitaku/go2-itertools/itertools"
+)
+
+var random bool
+
+func toChan[T any](s []T) <-chan T {
+	c := make(chan T)
+
+	go func(){
+		defer close(c)
+		for i := range(s) {
+			c <- s[i]
+			if random {
+				time.Sleep(time.Duration(rand.Intn(10)) * time.Millisecond)
+			}
+		}
+	}()
+
+	return c
+}
+
+func TestBuiltins(t *testing.T) {
+	rand.Seed(time.Now().UnixNano())
+	t.Run("Zip", testZip)
+	random = true
+	t.Run("Zip (randomized)", testZip)
+}
+
+func testZip(t *testing.T) {
+	s1, s2, s3, s4 := []int{1, 2}, []int{2, 3, 4, 5}, []int{9, 8, 7, 6, 5}, []int{0, -1, -2}
+	c1, c2, c3, c4 := toChan(s1), toChan(s2), toChan(s3), toChan(s4)
+
+	prepare := func() {
+		c1, c2, c3 = itertools.ToChan(s1), itertools.ToChan(s2), itertools.ToChan(s3)
+	}
+
+	// Zip2
+	z2 := itertools.Zip2(c1, c2)
+	expect := [][]int{{1, 2}, {2, 3}}
+
+	v1, v2 := []int{}, []int{}
+	for t := range z2 {
+		v1, v2 = append(v1, t.V1), append(v2, t.V2)
+	}
+
+	result := [][]int{v1, v2}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	// Zip2S
+	z2s := itertools.Zip2S(s1, s2)
+
+	v1, v2 = []int{}, []int{}
+	for t := range z2s {
+		v1, v2 = append(v1, t.V1), append(v2, t.V2)
+	}
+
+	result = [][]int{v1, v2}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	// Zip3
+	prepare()
+	z3 := itertools.Zip3(c1, c2, c3)
+	expect = [][]int{{1, 2}, {2, 3}, {9, 8}}
+
+	v1, v2, v3 := []int{}, []int{}, []int{}
+	for t := range z3 {
+		v1, v2, v3 = append(v1, t.V1), append(v2, t.V2), append(v3, t.V3)
+	}
+
+	result = [][]int{v1, v2, v3}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	// Zip3S
+	z3s := itertools.Zip3S(s1, s2, s3)
+	expect = [][]int{{1, 2}, {2, 3}, {9, 8}}
+
+	v1, v2, v3 = []int{}, []int{}, []int{}
+	for t := range z3s {
+		v1, v2, v3 = append(v1, t.V1), append(v2, t.V2), append(v3, t.V3)
+	}
+
+	result = [][]int{v1, v2, v3}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	// Zip4
+	prepare()
+	z4 := itertools.Zip4(c1, c2, c3, c4)
+	expect = [][]int{{1, 2}, {2, 3}, {9, 8}, {0, -1}}
+
+	v1, v2, v3, v4 := []int{}, []int{}, []int{}, []int{}
+	for t := range z4 {
+		v1, v2, v3, v4 = append(v1, t.V1), append(v2, t.V2), append(v3, t.V3), append(v4, t.V4)
+	}
+
+	result = [][]int{v1, v2, v3, v4}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	// Zip4S
+	z4s := itertools.Zip4S(s1, s2, s3, s4)
+	expect = [][]int{{1, 2}, {2, 3}, {9, 8}, {0, -1}}
+
+	v1, v2, v3, v4 = []int{}, []int{}, []int{}, []int{}
+	for t := range z4s {
+		v1, v2, v3, v4 = append(v1, t.V1), append(v2, t.V2), append(v3, t.V3), append(v4, t.V4)
+	}
+
+	result = [][]int{v1, v2, v3, v4}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
