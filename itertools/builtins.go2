@@ -99,7 +99,7 @@ func MaxS[T Ordered](it []T) T {
 	return it[len(it)-1]
 }
 
-func Zip2[T1, T2 any](it1 <-chan T1, it2 <-chan T2) chan Tuple2[T1, T2] {
+func zip2[T1, T2 any](it1 <-chan T1, it2 <-chan T2, f1 T1, f2 T2, longest bool) chan Tuple2[T1, T2] {
 	c := make(chan Tuple2[T1, T2])
 
 	go func() {
@@ -107,33 +107,53 @@ func Zip2[T1, T2 any](it1 <-chan T1, it2 <-chan T2) chan Tuple2[T1, T2] {
 
 		var v1 T1
 		var v2 T2
+		var closed = make([]bool, 2)
 		var ok bool
 
 		for {
 			select {
 			case v1, ok = <-it1:
 				if !ok {
-					return
+					closed[0] = true
 				}
 				v2, ok = <-it2
 				if !ok {
-					return
+					closed[1] = true
 				}
 
 			case v2, ok = <-it2:
 				if !ok {
-					return
+					closed[1] = true
 				}
 				v1, ok = <-it1
 				if !ok {
-					return
+					closed[0] = true
 				}
 			}
+
+			if closed[0] || closed[1] {
+				if (closed[0] && closed[1]) || !longest {
+					return
+				}
+				if closed[0] {
+					v1 = f1
+				}
+				if closed[1] {
+					v2 = f2
+				}
+			}
+
 			c <- Tuple2[T1, T2]{V1: v1, V2: v2}
 		}
 	}()
 
 	return c
+}
+
+func Zip2[T1, T2 any](it1 <-chan T1, it2 <-chan T2) chan Tuple2[T1, T2] {
+	var dummy1 T1
+	var dummy2 T2
+	return zip2(it1, it2, dummy1, dummy2, false)
 }
 
 func Zip2S[T1, T2 any](it1 []T1, it2 []T2) chan Tuple2[T1, T2] {
@@ -150,7 +170,7 @@ func Zip2S[T1, T2 any](it1 []T1, it2 []T2) chan Tuple2[T1, T2] {
 	return c
 }
 
-func Zip3[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3) chan Tuple3[T1, T2, T3] {
+func zip3[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, f1 T1, f2 T2, f3 T3, longest bool) chan Tuple3[T1, T2, T3] {
 	c := make(chan Tuple3[T1, T2, T3])
 
 	go func() {
@@ -159,75 +179,91 @@ func Zip3[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3) chan Tupl
 		var v1 T1
 		var v2 T2
 		var v3 T3
+		var closed = make([]bool, 3)
 		var ok bool
 
 		for {
 			select {
 			case v1, ok = <-it1:
 				if !ok {
-					return
+					closed[0] = true
 				}
 				select {
 				case v2, ok = <-it2:
 					if !ok {
-						return
+						closed[1] = true
 					}
 					v3, ok = <-it3
 					if !ok {
-						return
+						closed[2] = true
 					}
 				case v3, ok = <-it3:
 					if !ok {
-						return
+						closed[2] = true
 					}
 					v2, ok = <-it2
 					if !ok {
-						return
+						closed[1] = true
 					}
 				}
 			case v2, ok = <-it2:
 				if !ok {
-					return
+					closed[1] = true
 				}
 				select {
 				case v1, ok = <-it1:
 					if !ok {
-						return
+						closed[0] = true
 					}
 					v3, ok = <-it3
 					if !ok {
-						return
+						closed[2] = true
 					}
 				case v3, ok = <-it3:
 					if !ok {
-						return
+						closed[2] = true
 					}
 					v1, ok = <-it1
 					if !ok {
-						return
+						closed[0] = true
 					}
 				}
 			case v3, ok = <-it3:
 				if !ok {
-					return
+					closed[2] = true
 				}
 				select {
 				case v1, ok = <-it1:
 					if !ok {
-						return
+						closed[0] = true
 					}
 					v2, ok = <-it2
 					if !ok {
-						return
+						closed[1] = true
 					}
 				case v2, ok = <-it2:
 					if !ok {
-						return
+						closed[1] = true
 					}
 					v1, ok = <-it1
 					if !ok {
-						return
+						closed[0] = true
 					}
+				}
+			}
+
+			if closed[0] || closed[1] || closed[2] {
+				if (closed[0] && closed[1] && closed[2]) || !longest {
+					return
+				}
+				if closed[0] {
+					v1 = f1
+				}
+				if closed[1] {
+					v2 = f2
+				}
+				if closed[2] {
+					v3 = f3
 				}
 			}
 
@@ -236,6 +272,13 @@ func Zip3[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3) chan Tupl
 	}()
 
 	return c
+}
+
+func Zip3[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3) chan Tuple3[T1, T2, T3] {
+	var dummy1 T1
+	var dummy2 T2
+	var dummy3 T3
+	return zip3(it1, it2, it3, dummy1, dummy2, dummy3, false)
 }
 
 func Zip3S[T1, T2, T3 any](it1 []T1, it2 []T2, it3 []T3) chan Tuple3[T1, T2, T3] {
@@ -252,7 +295,7 @@ func Zip3S[T1, T2, T3 any](it1 []T1, it2 []T2, it3 []T3) chan Tuple3[T1, T2, T3]
 	return c
 }
 
-func Zip4[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4) chan Tuple4[T1, T2, T3, T4] {
+func zip4[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4, f1 T1, f2 T2, f3 T3, f4 T4, longest bool) chan Tuple4[T1, T2, T3, T4] {
 	c := make(chan Tuple4[T1, T2, T3, T4])
 
 	go func() {
@@ -262,297 +305,316 @@ func Zip4[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <
 		var v2 T2
 		var v3 T3
 		var v4 T4
+		var closed = make([]bool, 4)
 		var ok bool
 
 		for {
 			select {
 			case v1, ok = <-it1:
 				if !ok {
-					return
+					closed[0] = true
 				}
 				select {
 				case v2, ok = <-it2:
 					if !ok {
-						return
+						closed[1] = true
 					}
 					select {
 					case v3, ok = <-it3:
 						if !ok {
-							return
+							closed[2] = true
 						}
 						v4, ok = <-it4
 						if !ok {
-							return
+							closed[3] = true
 						}
 					case v4, ok = <-it4:
 						if !ok {
-							return
+							closed[3] = true
 						}
 						v3, ok = <-it3
 						if !ok {
-							return
+							closed[2] = true
 						}
 					}
 				case v3, ok = <-it3:
 					if !ok {
-						return
+						closed[2] = true
 					}
 					select {
 					case v2, ok = <-it2:
 						if !ok {
-							return
+							closed[1] = true
 						}
 						v4, ok = <-it4
 						if !ok {
-							return
+							closed[3] = true
 						}
 					case v4, ok = <-it4:
 						if !ok {
-							return
+							closed[3] = true
 						}
 						v2, ok = <-it2
 						if !ok {
-							return
+							closed[1] = true
 						}
 					}
 				case v4, ok = <-it4:
 					if !ok {
-						return
+						closed[3] = true
 					}
 					select {
 					case v2, ok = <-it2:
 						if !ok {
-							return
+							closed[1] = true
 						}
 						v3, ok = <-it3
 						if !ok {
-							return
+							closed[2] = true
 						}
 					case v3, ok = <-it3:
 						if !ok {
-							return
+							closed[2] = true
 						}
 						v2, ok = <-it2
 						if !ok {
-							return
+							closed[1] = true
 						}
 					}
 				}
 			case v2, ok = <-it2:
 				if !ok {
-					return
+					closed[1] = true
 				}
 				select {
 				case v1, ok = <-it1:
 					if !ok {
-						return
+						closed[0] = true
 					}
 					select {
 					case v3, ok = <-it3:
 						if !ok {
-							return
+							closed[2] = true
 						}
 						v4, ok = <-it4
 						if !ok {
-							return
+							closed[3] = true
 						}
 					case v4, ok = <-it4:
 						if !ok {
-							return
+							closed[3] = true
 						}
 						v3, ok = <-it3
 						if !ok {
-							return
+							closed[2] = true
 						}
 					}
 				case v3, ok = <-it3:
 					if !ok {
-						return
+						closed[2] = true
 					}
 					select {
 					case v1, ok = <-it1:
 						if !ok {
-							return
+							closed[0] = true
 						}
 						v4, ok = <-it4
 						if !ok {
-							return
+							closed[3] = true
 						}
 					case v4, ok = <-it4:
 						if !ok {
-							return
+							closed[3] = true
 						}
 						v1, ok = <-it1
 						if !ok {
-							return
+							closed[0] = true
 						}
 					}
 				case v4, ok = <-it4:
 					if !ok {
-						return
+						closed[3] = true
 					}
 					select {
 					case v1, ok = <-it1:
 						if !ok {
-							return
+							closed[0] = true
 						}
 						v3, ok = <-it3
 						if !ok {
-							return
+							closed[2] = true
 						}
 					case v3, ok = <-it3:
 						if !ok {
-							return
+							closed[2] = true
 						}
 						v1, ok = <-it1
 						if !ok {
-							return
+							closed[0] = true
 						}
 					}
 				}
 			case v3, ok = <-it3:
 				if !ok {
-					return
+					closed[2] = true
 				}
 				select {
 				case v1, ok = <-it1:
 					if !ok {
-						return
+						closed[0] = true
 					}
 					select {
 					case v2, ok = <-it2:
 						if !ok {
-							return
+							closed[1] = true
 						}
 						v4, ok = <-it4
 						if !ok {
-							return
+							closed[3] = true
 						}
 					case v4, ok = <-it4:
 						if !ok {
-							return
+							closed[3] = true
 						}
 						v2, ok = <-it2
 						if !ok {
-							return
+							closed[1] = true
 						}
 					}
 				case v2, ok = <-it2:
 					if !ok {
-						return
+						closed[1] = true
 					}
 					select {
 					case v1, ok = <-it1:
 						if !ok {
-							return
+							closed[0] = true
 						}
 						v4, ok = <-it4
 						if !ok {
-							return
+							closed[3] = true
 						}
 					case v4, ok = <-it4:
 						if !ok {
-							return
+							closed[3] = true
 						}
 						v1, ok = <-it1
 						if !ok {
-							return
+							closed[0] = true
 						}
 					}
 				case v4, ok = <-it4:
 					if !ok {
-						return
+						closed[3] = true
 					}
 					select {
 					case v1, ok = <-it1:
 						if !ok {
-							return
+							closed[0] = true
 						}
 						v2, ok = <-it2
 						if !ok {
-							return
+							closed[1] = true
 						}
 					case v2, ok = <-it2:
 						if !ok {
-							return
+							closed[1] = true
 						}
 						v1, ok = <-it1
 						if !ok {
-							return
+							closed[0] = true
 						}
 					}
 				}
 			case v4, ok = <-it4:
 				if !ok {
-					return
+					closed[3] = true
 				}
 				select {
 				case v1, ok = <-it1:
 					if !ok {
-						return
+						closed[0] = true
 					}
 					select {
 					case v2, ok = <-it2:
 						if !ok {
-							return
+							closed[1] = true
 						}
 						v3, ok = <-it3
 						if !ok {
-							return
+							closed[2] = true
 						}
 					case v3, ok = <-it3:
 						if !ok {
-							return
+							closed[2] = true
 						}
 						v2, ok = <-it2
 						if !ok {
-							return
+							closed[1] = true
 						}
 					}
 				case v2, ok = <-it2:
 					if !ok {
-						return
+						closed[1] = true
 					}
 					select {
 					case v1, ok = <-it1:
 						if !ok {
-							return
+							closed[0] = true
 						}
 						v3, ok = <-it3
 						if !ok {
-							return
+							closed[2] = true
 						}
 					case v3, ok = <-it3:
 						if !ok {
-							return
+							closed[2] = true
 						}
 						v1, ok = <-it1
 						if !ok {
-							return
+							closed[0] = true
 						}
 					}
 				case v3, ok = <-it3:
 					if !ok {
-						return
+						closed[2] = true
 					}
 					select {
 					case v1, ok = <-it1:
 						if !ok {
-							return
+							closed[0] = true
 						}
 						v2, ok = <-it2
 						if !ok {
-							return
+							closed[1] = true
 						}
 					case v2, ok = <-it2:
 						if !ok {
-							return
+							closed[1] = true
 						}
 						v1, ok = <-it1
 						if !ok {
-							return
+							closed[0] = true
 						}
 					}
+				}
+			}
+
+			if closed[0] || closed[1] || closed[2] || closed[3] {
+				if (closed[0] && closed[1] && closed[2] && closed[3]) || !longest {
+					return
+				}
+				if closed[0] {
+					v1 = f1
+				}
+				if closed[1] {
+					v2 = f2
+				}
+				if closed[2] {
+					v3 = f3
+				}
+				if closed[3] {
+					v4 = f4
 				}
 			}
 
@@ -563,7 +625,13 @@ func Zip4[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <
 	return c
 }
 
-
+func Zip4[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4) chan Tuple4[T1, T2, T3, T4] {
+	var dummy1 T1
+	var dummy2 T2
+	var dummy3 T3
+	var dummy4 T4
+	return zip4(it1, it2, it3, it4, dummy1, dummy2, dummy3, dummy4, false)
+}
 
 func Zip4S[T1, T2, T3, T4 any](it1 []T1, it2 []T2, it3 []T3, it4 []T4) chan Tuple4[T1, T2, T3, T4] {
 	c := make(chan Tuple4[T1, T2, T3, T4])

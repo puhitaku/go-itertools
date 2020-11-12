@@ -214,19 +214,28 @@ func testGroupByIface(t *testing.T) {
 		{4, 3},
 	}
 
-	it := itertools.GroupByIface(seq)
+	it := itertools.GroupByIface(itertools.ToChan(seq))
 	expect := []testGroup{{Point{1, 2}, 2}, {Point{3, 2}, 1}, {Point{3, 4}, 1}, {Point{4, 3}, 2}}
-	result := []testGroup{}
+	output := []testGroup{}
 
 	for group := range it {
-		n := 0
-		for _ = range group.Group {
-			n++
-		}
-		result = append(result, testGroup{group.Key, n})
+		n := len(itertools.ToSlice(group.Group))
+		output = append(output, testGroup{group.Key, n})
 	}
 
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+
+	it = itertools.GroupByIfaceS(seq)
+	output = []testGroup{}
+
+	for group := range it {
+		n := len(itertools.ToSlice(group.Group))
+		output = append(output, testGroup{group.Key, n})
+	}
+
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }
@@ -235,71 +244,87 @@ func testISlice(t *testing.T) {
 	seq := []rune("ABCDEFG")
 
 	// Skip beginning
-	it := itertools.ISlice(seq, 2, 0, 1)
+	output := string(itertools.ToSlice(itertools.ISlice(itertools.ToChan(seq), 2, 0, 1)))
 	expect := "CDEFG"
-	result := ""
 
-	for v := range it {
-		result += string(v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
 	// Skip beginning and end
-	it = itertools.ISlice(seq, 2, len(seq)-1, 1)
+	output = string(itertools.ToSlice(itertools.ISlice(itertools.ToChan(seq), 2, len(seq)-1, 1)))
 	expect = "CDEF"
-	result = ""
 
-	for v := range it {
-		result += string(v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
 	// Skip beggining, skip 2
-	it = itertools.ISlice(seq, 2, 0, 2)
+	output = string(itertools.ToSlice(itertools.ISlice(itertools.ToChan(seq), 2, 0, 2)))
 	expect = "CEG"
-	result = ""
 
-	for v := range it {
-		result += string(v)
-	}
-
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
 	// Nothing to iterate
-	it = itertools.ISlice(seq, 3, 1, 1)
+	output = string(itertools.ToSlice(itertools.ISlice(itertools.ToChan(seq), 3, 1, 1)))
 	expect = ""
-	result = ""
 
-	for v := range it {
-		result += string(v)
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	// Skip beginning
+	output = string(itertools.ToSlice(itertools.ISliceS(seq, 2, 0, 1)))
+	expect = "CDEFG"
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	// Skip beginning and end
+	output = string(itertools.ToSlice(itertools.ISliceS(seq, 2, len(seq)-1, 1)))
+	expect = "CDEF"
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	// Skip beggining, skip 2
+	output = string(itertools.ToSlice(itertools.ISliceS(seq, 2, 0, 2)))
+	expect = "CEG"
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	// Nothing to iterate
+	output = string(itertools.ToSlice(itertools.ISliceS(seq, 3, 1, 1)))
+	expect = ""
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 }
 
 func testTee(t *testing.T) {
+	// FIXME: this test doesn't test if the tee'd channels are able to be consumed asynchronously.
+	//        See /itertools/finite.go2 for further details.
+
 	seq := []int{1, 2, 3, 4}
-	its := itertools.Tee(seq, 3)
+	its := itertools.Tee(itertools.ToChan(seq), 3)
+	outputs := [3][]int{{}, {}, {}}
+	expect := [3][]int{{1, 2, 3, 4}, {1, 2, 3, 4}, {1, 2, 3, 4}}
 
-	for i := 0; i < 3; i++ {
-		result := []int{}
-		for v := range its[i] {
-			result = append(result, v)
+	for i := 0; i < 4; i++ {
+		for j, it := range its {
+			outputs[j] = append(outputs[j], <-it)
 		}
+	}
 
-		if !reflect.DeepEqual(result, seq) {
-			t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", seq, result)
-		}
+	if !reflect.DeepEqual(outputs, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, outputs)
 	}
 }
 
@@ -307,22 +332,36 @@ func testZipLongest(t *testing.T) {
 	s1, s2, s3, s4 := []int{1, 2}, []int{2, 3, 4, 5}, []int{9, 8, 7, 6, 5}, []int{0, -1, -2}
 
 	// ZipLongest2
-	z2 := itertools.ZipLongest2(s1, s2, 11, 22)
+	z2 := itertools.ZipLongest2(itertools.ToChan(s1), itertools.ToChan(s2), 11, 22)
 	expect := [][]int{{1, 2, 11, 11}, {2, 3, 4, 5}}
-
 	v1, v2 := []int{}, []int{}
+
 	for t := range z2 {
 		v1, v2 = append(v1, t.V1), append(v2, t.V2)
 	}
 
-	result := [][]int{v1, v2}
+	output := [][]int{v1, v2}
 
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	// ZipLongest2S
+	z2s := itertools.ZipLongest2S(s1, s2, 11, 22)
+	v1, v2 = []int{}, []int{}
+
+	for t := range z2s {
+		v1, v2 = append(v1, t.V1), append(v2, t.V2)
+	}
+
+	output = [][]int{v1, v2}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
 	// ZipLongest3
-	z3 := itertools.ZipLongest3(s1, s2, s3, 11, 22, 33)
+	z3 := itertools.ZipLongest3(itertools.ToChan(s1), itertools.ToChan(s2), itertools.ToChan(s3), 11, 22, 33)
 	expect = [][]int{{1, 2, 11, 11, 11}, {2, 3, 4, 5, 22}, {9, 8, 7, 6, 5}}
 
 	v1, v2, v3 := []int{}, []int{}, []int{}
@@ -330,14 +369,29 @@ func testZipLongest(t *testing.T) {
 		v1, v2, v3 = append(v1, t.V1), append(v2, t.V2), append(v3, t.V3)
 	}
 
-	result = [][]int{v1, v2, v3}
+	output = [][]int{v1, v2, v3}
 
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	// ZipLongest3S
+	z3s := itertools.ZipLongest3S(s1, s2, s3, 11, 22, 33)
+	expect = [][]int{{1, 2, 11, 11, 11}, {2, 3, 4, 5, 22}, {9, 8, 7, 6, 5}}
+
+	v1, v2, v3 = []int{}, []int{}, []int{}
+	for t := range z3s {
+		v1, v2, v3 = append(v1, t.V1), append(v2, t.V2), append(v3, t.V3)
+	}
+
+	output = [][]int{v1, v2, v3}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
 	// ZipLongest4
-	z4 := itertools.ZipLongest4(s1, s2, s3, s4, 11, 22, 33, 44)
+	z4 := itertools.ZipLongest4(itertools.ToChan(s1), itertools.ToChan(s2), itertools.ToChan(s3), itertools.ToChan(s4), 11, 22, 33, 44)
 	expect = [][]int{{1, 2, 11, 11, 11}, {2, 3, 4, 5, 22}, {9, 8, 7, 6, 5}, {0, -1, -2, 44, 44}}
 
 	v1, v2, v3, v4 := []int{}, []int{}, []int{}, []int{}
@@ -345,9 +399,24 @@ func testZipLongest(t *testing.T) {
 		v1, v2, v3, v4 = append(v1, t.V1), append(v2, t.V2), append(v3, t.V3), append(v4, t.V4)
 	}
 
-	result = [][]int{v1, v2, v3, v4}
+	output = [][]int{v1, v2, v3, v4}
 
-	if !reflect.DeepEqual(result, expect) {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	// ZipLongest4S
+	z4s := itertools.ZipLongest4S(s1, s2, s3, s4, 11, 22, 33, 44)
+	expect = [][]int{{1, 2, 11, 11, 11}, {2, 3, 4, 5, 22}, {9, 8, 7, 6, 5}, {0, -1, -2, 44, 44}}
+
+	v1, v2, v3, v4 = []int{}, []int{}, []int{}, []int{}
+	for t := range z4s {
+		v1, v2, v3, v4 = append(v1, t.V1), append(v2, t.V2), append(v3, t.V3), append(v4, t.V4)
+	}
+
+	output = [][]int{v1, v2, v3, v4}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 }

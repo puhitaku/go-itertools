@@ -285,7 +285,44 @@ func GroupByS[T Comparable](seq []T) chan Group[T] {
 	return c
 }
 
-func GroupByIface[T ComparableIface[T]](seq []T) chan Group[T] {
+func GroupByIface[T ComparableIface[T]](seq <-chan T) chan Group[T] {
+	c := make(chan Group[T])
+	var gc chan T
+
+	go func() {
+		defer func() {
+			close(c)
+			if gc != nil {
+				close(gc)
+			}
+		}()
+
+		var curKey T
+		var i int
+
+		for v := range seq {
+			if i == 0 || !curKey.Eq(v) {
+				if gc != nil {
+					close(gc)
+				}
+
+				curKey = v
+				gc = make(chan T)
+				c <- Group[T]{
+					Key:   curKey,
+					Group: gc,
+				}
+			}
+
+			gc <- v
+			i++
+		}
+	}()
+
+	return c
+}
+
+func GroupByIfaceS[T ComparableIface[T]](seq []T) chan Group[T] {
 	c := make(chan Group[T])
 	var gc chan T
 
@@ -324,7 +361,34 @@ func GroupByIface[T ComparableIface[T]](seq []T) chan Group[T] {
 	return c
 }
 
-func ISlice[T any](seq []T, start, stop, step int) chan T {
+func ISlice[T any](seq <-chan T, start, stop, step int) chan T {
+	if step <= 0 {
+		panic("step must be more than zero")
+	}
+
+	c := make(chan T)
+
+	go func() {
+		defer close(c)
+
+		var i int
+
+		for v := range seq {
+			if i != 0 && i == stop {
+				return
+			}
+
+			if i >= start && i % step == 0 {
+				c <- v
+			}
+			i++
+		}
+	}()
+
+	return c
+}
+
+func ISliceS[T any](seq []T, start, stop, step int) chan T {
 	if step <= 0 {
 		panic("step must be more than zero")
 	}
@@ -346,25 +410,87 @@ func ISlice[T any](seq []T, start, stop, step int) chan T {
 	return c
 }
 
-func Tee[T any](seq []T, n int) []chan T {
+func Tee[T any](seq <-chan T, n int) []<-chan T {
+	// Tee creates N copies of passed channel.
+	//
+	// CAUTION and FIXME: the incoming channel that is shared among
+	// all tee'd channels will advance after ALL tee'd channels
+	// consume the current value.
+	//
+	// Let's say there are three channels. Namely:
+	// - C: the original channel
+	// - T1: 1st tee'd copy of C
+	// - T2: 2nd tee'd copy of C
+	//
+	// 1. Goroutine A consumes T1.
+	// 2. Goro B is too busy to consume T2 for now.
+	// 3. Goro A tries to consume the next value via T1 but it blocks.
+	//    It's because C won't advance until goro B consumes T2.
+	//
+	// This will be fixed after we implement a generic buffer.
+
 	var cs []chan T
 
 	for i := 0; i < n; i++ {
-		c := make(chan T)
-		cs = append(cs, c)
-
-		go func() {
-			for j := 0; j < len(seq); j++ {
-				c <- seq[j]
-			}
-			close(c)
-		}()
+		cs = append(cs, make(chan T))
 	}
 
-	return cs
+	go func() {
+		defer func() {
+			for i := range cs {
+				close(cs[i])
+			}
+		}()
+
+		for v := range seq {
+			for i := range cs {
+				cs[i] <- v
+			}
+		}
+	}()
+
+	var csr []<-chan T
+	for i := range cs {
+		csr = append(csr, cs[i])
+	}
+
+	return csr
 }
 
-func ZipLongest2[T1, T2 any](s1 []T1, s2 []T2, f1 T1, f2 T2) chan Tuple2[T1, T2] {
+func TeeS[T any](seq []T, n int) []<-chan T {
+	var cs []chan T
+
+	for i := 0; i < n; i++ {
+		cs = append(cs, make(chan T))
+	}
+
+	go func() {
+		defer func() {
+			for i := range cs {
+				close(cs[i])
+			}
+		}()
+
+		for i := range seq {
+			for j := range cs {
+				cs[j] <- seq[i]
+			}
+		}
+	}()
+
+	var csr []<-chan T
+	for i := range cs {
+		csr = append(csr, cs[i])
+	}
+
+	return csr
+}
+
+func ZipLongest2[T1, T2 any](it1 <-chan T1, it2 <-chan T2, f1 T1, f2 T2) chan Tuple2[T1, T2] {
+	return zip2(it1, it2, f1, f2, true)
+}
+
+func ZipLongest2S[T1, T2 any](s1 []T1, s2 []T2, f1 T1, f2 T2) chan Tuple2[T1, T2] {
 	c := make(chan Tuple2[T1, T2])
 	l := Max(len(s1), len(s2))
 
@@ -393,7 +519,11 @@ func ZipLongest2[T1, T2 any](s1 []T1, s2 []T2, f1 T1, f2 T2) chan Tuple2[T1, T2]
 	return c
 }
 
-func ZipLongest3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3, f1 T1, f2 T2, f3 T3) chan Tuple3[T1, T2, T3] {
+func ZipLongest3[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, f1 T1, f2 T2, f3 T3) chan Tuple3[T1, T2, T3] {
+	return zip3(it1, it2, it3, f1, f2, f3, true)
+}
+
+func ZipLongest3S[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3, f1 T1, f2 T2, f3 T3) chan Tuple3[T1, T2, T3] {
 	c := make(chan Tuple3[T1, T2, T3])
 	l := Max(len(s1), len(s2), len(s3))
 
@@ -429,7 +559,11 @@ func ZipLongest3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3, f1 T1, f2 T2, f3 T3)
 	return c
 }
 
-func ZipLongest4[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4, f1 T1, f2 T2, f3 T3, f4 T4) chan Tuple4[T1, T2, T3, T4] {
+func ZipLongest4[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4, f1 T1, f2 T2, f3 T3, f4 T4) chan Tuple4[T1, T2, T3, T4] {
+	return zip4(it1, it2, it3, it4, f1, f2, f3, f4, true)
+}
+
+func ZipLongest4S[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4, f1 T1, f2 T2, f3 T3, f4 T4) chan Tuple4[T1, T2, T3, T4] {
 	c := make(chan Tuple4[T1, T2, T3, T4])
 	l := Max(len(s1), len(s2), len(s3), len(s4))
 
