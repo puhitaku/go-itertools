@@ -37,6 +37,10 @@ func TestBuiltins(t *testing.T) {
 	t.Run("Map", testMap)
 	t.Run("Min", testMin)
 	t.Run("Max", testMax)
+	t.Run("Range", testRange)
+	t.Run("Reversed", testReversed)
+	t.Run("Sorted", testSorted)
+	t.Run("Sum", testSum)
 	t.Run("Zip", testZip)
 	random = true
 	t.Run("Zip (randomized)", testZip)
@@ -241,5 +245,109 @@ func testZip(t *testing.T) {
 
 	if !reflect.DeepEqual(result, expect) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
+
+func testRange(t *testing.T) {
+	// Invalid step
+	result := itertools.ToSlice(itertools.Range(0, 5, 0))
+	expect := []int{}
+
+	if len(result) != 0 {
+		t.Fatalf("the result did not match with the expected slice: expect=[], actual=%v", result)
+	}
+
+	// Positive 1 step
+	result = itertools.ToSlice(itertools.Range(0, 5, 1))
+	expect = []int{0, 1, 2, 3, 4}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	// Positive 2 step #1
+	result = itertools.ToSlice(itertools.Range(0, 5, 2))
+	expect = []int{0, 2, 4}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	// Positive 2 step #2
+	result = itertools.ToSlice(itertools.Range(1, 5, 2))
+	expect = []int{1, 3}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	// Negative 1 step
+	result = itertools.ToSlice(itertools.Range(5, 0, -1))
+	expect = []int{5, 4, 3, 2, 1}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	// Negative 2 step #1
+	result = itertools.ToSlice(itertools.Range(5, 0, -2))
+	expect = []int{5, 3, 1}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	// Negative 2 step #2
+	result = itertools.ToSlice(itertools.Range(4, 0, -2))
+	expect = []int{4, 2}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
+
+func testReversed(t *testing.T) {
+	s := []int{0, 1, 2, 3, 4, 5}
+	result := itertools.ToSlice(itertools.Reversed(s))
+	expect := []int{5, 4, 3, 2, 1, 0}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
+
+func testSorted(t *testing.T) {
+	s := []int{0, 3, 1, -19, 9, 2}
+	result := itertools.ToSlice(itertools.Sorted(s))
+	expect := []int{-19, 0, 1, 2, 3, 9}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
+
+func testSum(t *testing.T) {
+	s1 := []int{1, 2, 3}
+	r1 := itertools.Sum(s1)
+	e1 := 6
+
+	if !reflect.DeepEqual(r1, e1) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", e1, r1)
+	}
+
+	s2 := []string{"a", "ab", "abc"}
+	r2 := itertools.Sum(s2)
+	e2 := "aababc"
+
+	if !reflect.DeepEqual(r2, e2) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", e2, r2)
+	}
+
+	s3 := []Point{{1, 2}, {3, 4}, {5, 6}}
+	r3 := itertools.SumIface(s3)
+	e3 := Point{9, 12}
+
+	if !reflect.DeepEqual(r3, e3) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", e3, r3)
 	}
 }

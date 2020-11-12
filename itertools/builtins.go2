@@ -99,6 +99,12 @@ func MapS[T1, T2 any](fn func(v T1) T2, it []T1) <-chan T2 {
 	return c
 }
 
+func copyS[T any](it []T) []T {
+	tmp := make([]T, len(it))
+	copy(tmp, it)
+	return tmp
+}
+
 func Min[T Ordered](it ...T) T {
 	sort.Sort(toSortable(it))
 	return it[0]
@@ -108,8 +114,9 @@ func MinS[T Ordered](it []T) T {
 	if len(it) < 1 {
 		panic("the arg is an empty sequence")
 	}
-	sort.Sort(toSortable(it))
-	return it[0]
+	tmp := copyS(it)
+	sort.Sort(toSortable(tmp))
+	return tmp[0]
 }
 
 func Max[T Ordered](it ...T) T {
@@ -121,8 +128,83 @@ func MaxS[T Ordered](it []T) T {
 	if len(it) < 1 {
 		panic("the arg is an empty sequence")
 	}
-	sort.Sort(toSortable(it))
-	return it[len(it)-1]
+	tmp := copyS(it)
+	sort.Sort(toSortable(tmp))
+	return tmp[len(tmp)-1]
+}
+
+func Range(start, stop, step int) <-chan int {
+	c := make(chan int)
+
+	go func() {
+		defer close(c)
+
+		if start < stop {
+			if step < 1 {
+				return
+			}
+			for i := start; i < stop; i += step {
+				c <- i
+			}
+		} else {
+			if step > -1 {
+				return
+			}
+			for i := start; i > stop; i += step {
+				c <- i
+			}
+		}
+	}()
+
+	return c
+}
+
+func Reversed[T any](it []T) <-chan T {
+	// Reversed returns a reversed slice.
+	// This operation is not in-place.
+
+	c := make(chan T)
+
+	go func() {
+		defer close(c)
+		for i := range it {
+			c <- it[len(it)-1-i]
+		}
+	}()
+
+	return c
+}
+
+func Sorted[T Ordered](it []T) <-chan T {
+	c := make(chan T)
+
+	go func() {
+		defer close(c)
+		tmp := copyS(it)
+		sort.Sort(toSortable(tmp))
+
+		for i := range tmp {
+			c <- tmp[i]
+		}
+	}()
+
+	return c
+}
+
+func Sum[T Addable](it []T) T {
+	sum := it[0]
+	for i := range it[1:] {
+		sum += it[i+1]
+	}
+	return sum
+}
+
+func SumIface[T AddableIface[T]](it []T) T {
+	sum := it[0]
+	for i := range it[1:] {
+		sum = sum.Add(it[i+1])
+	}
+	return sum
 }
 
 func zip2[T1, T2 any](it1 <-chan T1, it2 <-chan T2, f1 T1, f2 T2, longest bool) chan Tuple2[T1, T2] {
