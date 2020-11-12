@@ -196,7 +196,11 @@ func TakeWhileS[T any](pred func(v T) bool, seq []T) chan T {
 	return c
 }
 
-func FilterFalse[T any](pred func(v T) bool, seq []T) <-chan T {
+func FilterFalse[T any](pred func(v T) bool, seq <-chan T) <-chan T {
+	return Filter(func(v T)bool{ return !pred(v)}, seq)
+}
+
+func FilterFalseS[T any](pred func(v T) bool, seq []T) <-chan T {
 	return FilterS(func(v T)bool{ return !pred(v)}, seq)
 }
 
