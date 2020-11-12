@@ -272,19 +272,28 @@ func testFilterFalse(t *testing.T) {
 
 func testGroupBy(t *testing.T) {
 	seq := []rune("aaaabbbccd")
-	it := itertools.GroupBy(seq)
+	it := itertools.GroupBy(itertools.ToChan(seq))
 	expect := [][]string{{"a", "aaaa"}, {"b", "bbb"}, {"c", "cc"}, {"d", "d"}}
-	result := [][]string{}
+	output := [][]string{}
 
 	for group := range it {
-		vs := []rune{}
-		for v := range group.Group {
-			vs = append(vs, v)
-		}
-		result = append(result, []string{string(group.Key), string(vs)})
+		vs := itertools.ToSlice(group.Group)
+		output = append(output, []string{string(group.Key), string(vs)})
 	}
 
-	if !reflect.DeepEqual(result, expect) {
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatal("the result did not match with the expected slice")
+	}
+
+	it = itertools.GroupByS(seq)
+	output = [][]string{}
+
+	for group := range it {
+		vs := itertools.ToSlice(group.Group)
+		output = append(output, []string{string(group.Key), string(vs)})
+	}
+
+	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 }

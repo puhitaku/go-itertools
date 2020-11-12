@@ -209,7 +209,44 @@ type Group[T any] struct {
 	Group <-chan T
 }
 
-func GroupBy[T Comparable](seq []T) chan Group[T] {
+func GroupBy[T Comparable](seq <-chan T) chan Group[T] {
+	c := make(chan Group[T])
+	var gc chan T
+
+	go func() {
+		defer func() {
+			close(c)
+			if gc != nil {
+				close(gc)
+			}
+		}()
+
+		var curKey T
+		var i int
+
+		for v := range seq {
+			if i == 0 || curKey != v {
+				if gc != nil {
+					close(gc)
+				}
+
+				curKey = v
+				gc = make(chan T)
+				c <- Group[T]{
+					Key:   curKey,
+					Group: gc,
+				}
+			}
+
+			gc <- v
+			i++
+		}
+	}()
+
+	return c
+}
+
+func GroupByS[T Comparable](seq []T) chan Group[T] {
 	c := make(chan Group[T])
 	var gc chan T
 
