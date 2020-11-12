@@ -1,11 +1,37 @@
 package itertools
 
 type Comparable interface {
+	// Types that implements = operator
 	type bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, string, interface{}
 }
 
 type ComparableIface[T any] interface {
 	Eq(v T) bool
+}
+
+type Ordered interface {
+	// Types that implements < and > operators intrinsically
+	type int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, string
+}
+
+type Sortable[T Ordered] struct {
+	it []T
+}
+
+func (s Sortable[T]) Len() int {
+	return len(s.it)
+}
+
+func (s Sortable[T]) Less(i, j int) bool {
+	return s.it[i] < s.it[j]
+}
+
+func (s Sortable[T]) Swap(i, j int) {
+	s.it[i], s.it[j] = s.it[j], s.it[i]
+}
+
+func toSortable[T Ordered](it []T) Sortable[T] {
+	return Sortable[T]{it: it}
 }
 
 type Incrementable interface {

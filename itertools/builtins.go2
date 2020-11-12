@@ -1,4 +1,4 @@
-// builtins: Ported Python builtins
+// builtins: A collection of ported Python builtins that are related to iterables
 
 package itertools
 
@@ -6,22 +6,30 @@ import (
 	"sort"
 )
 
-func IntMin(i ...int) int {
-	if len(i) < 1 {
-		panic("no comparable integers are passed")
-	}
-
-	sort.Ints(i)
-	return i[0]
+func Min[T Ordered](it ...T) T {
+	sort.Sort(toSortable(it))
+	return it[0]
 }
 
-func IntMax(i ...int) int {
-	if len(i) < 1 {
-		panic("no comparable integers are passed")
+func MinS[T Ordered](it []T) T {
+	if len(it) < 1 {
+		panic("the arg is an empty sequence")
 	}
+	sort.Sort(toSortable(it))
+	return it[0]
+}
 
-	sort.Ints(i)
-	return i[len(i)-1]
+func Max[T Ordered](it ...T) T {
+	sort.Sort(toSortable(it))
+	return it[len(it)-1]
+}
+
+func MaxS[T Ordered](it []T) T {
+	if len(it) < 1 {
+		panic("the arg is an empty sequence")
+	}
+	sort.Sort(toSortable(it))
+	return it[len(it)-1]
 }
 
 func Zip2[T1, T2 any](it1 <-chan T1, it2 <-chan T2) chan Tuple2[T1, T2] {
@@ -63,7 +71,7 @@ func Zip2[T1, T2 any](it1 <-chan T1, it2 <-chan T2) chan Tuple2[T1, T2] {
 
 func Zip2S[T1, T2 any](it1 []T1, it2 []T2) chan Tuple2[T1, T2] {
 	c := make(chan Tuple2[T1, T2])
-	l := IntMin(len(it1), len(it2))
+	l := Min(len(it1), len(it2))
 
 	go func() {
 		for i := 0; i < l; i++ {
@@ -165,7 +173,7 @@ func Zip3[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3) chan Tupl
 
 func Zip3S[T1, T2, T3 any](it1 []T1, it2 []T2, it3 []T3) chan Tuple3[T1, T2, T3] {
 	c := make(chan Tuple3[T1, T2, T3])
-	l := IntMin(len(it1), len(it2), len(it3))
+	l := Min(len(it1), len(it2), len(it3))
 
 	go func() {
 		for i := 0; i < l; i++ {
@@ -492,7 +500,7 @@ func Zip4[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <
 
 func Zip4S[T1, T2, T3, T4 any](it1 []T1, it2 []T2, it3 []T3, it4 []T4) chan Tuple4[T1, T2, T3, T4] {
 	c := make(chan Tuple4[T1, T2, T3, T4])
-	l := IntMin(len(it1), len(it2), len(it3), len(it4))
+	l := Min(len(it1), len(it2), len(it3), len(it4))
 
 	go func() {
 		for i := 0; i < l; i++ {

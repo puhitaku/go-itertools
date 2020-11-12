@@ -29,9 +29,47 @@ func toChan[T any](s []T) <-chan T {
 
 func TestBuiltins(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
+	t.Run("Min", testMin)
+	t.Run("Max", testMax)
 	t.Run("Zip", testZip)
 	random = true
 	t.Run("Zip (randomized)", testZip)
+}
+
+func testMin(t *testing.T) {
+	s := []int{1, 2, -1, 999, -4, 0}
+	//c1, c2, c3, c4 := toChan(s1), toChan(s2), toChan(s3), toChan(s4)
+
+	result := itertools.Min(s...)
+	expect := -4
+
+	if result != expect {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	result = itertools.MinS(s)
+
+	if result != expect {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
+
+func testMax(t *testing.T) {
+	s := []int{1, 2, -1, 999, -4, 0}
+	//c1, c2, c3, c4 := toChan(s1), toChan(s2), toChan(s3), toChan(s4)
+
+	result := itertools.Max(s...)
+	expect := 999
+
+	if result != expect {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	result = itertools.MaxS(s)
+
+	if result != expect {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
 }
 
 func testZip(t *testing.T) {
