@@ -6,6 +6,73 @@ import (
 	"sort"
 )
 
+func All(it []bool) bool {
+	for i := range it {
+		if !it[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func Any(it []bool) bool {
+	for i := range it {
+		if it[i] {
+			return true
+		}
+	}
+	return false
+}
+
+func Enumerate[T any](it <-chan T) <-chan Tuple2[int, T] {
+	// Enumerate enumerate the received values from channel.
+	// Use this when you handle infinite, too huge, or unpredictable channels.
+	// For slices, you'd better use the native way; `for i, v := range s { ... }`
+
+	c := make(chan Tuple2[int, T])
+
+	go func() {
+		defer close(c)
+		i := 0
+		for v := range it {
+			c <- Tuple2[int, T]{V1: i, V2: v}
+			i++
+		}
+	}()
+
+	return c
+}
+
+func Filter[T any](fn func(v T) bool, it <-chan T) <-chan T {
+	c := make(chan T)
+
+	go func() {
+		for v := range it {
+			if fn(v) {
+				c <- v
+			}
+		}
+		close(c)
+	}()
+
+	return c
+}
+
+func FilterS[T any](fn func(v T) bool, it []T) <-chan T {
+	c := make(chan T)
+
+	go func() {
+		for i := range it {
+			if fn(it[i]) {
+				c <- it[i]
+			}
+		}
+		close(c)
+	}()
+
+	return c
+}
+
 func Min[T Ordered](it ...T) T {
 	sort.Sort(toSortable(it))
 	return it[0]

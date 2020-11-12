@@ -29,11 +29,65 @@ func toChan[T any](s []T) <-chan T {
 
 func TestBuiltins(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
+	t.Run("All", testAll)
+	t.Run("Any", testAny)
+	t.Run("Enumerate", testEnumerate)
+	t.Run("Filter", testFilter)
 	t.Run("Min", testMin)
 	t.Run("Max", testMax)
 	t.Run("Zip", testZip)
 	random = true
 	t.Run("Zip (randomized)", testZip)
+}
+
+func testAll(t *testing.T) {
+	s1, s2, s3 := []bool{true, true}, []bool{true, false}, []bool{false, false}
+	result := []bool{itertools.All(s1), itertools.All(s2), itertools.All(s3)}
+	expect := []bool{true, false, false}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
+
+func testAny(t *testing.T) {
+	s1, s2, s3 := []bool{true, true}, []bool{true, false}, []bool{false, false}
+	result := []bool{itertools.Any(s1), itertools.Any(s2), itertools.Any(s3)}
+	expect := []bool{true, true, false}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
+
+func testEnumerate(t *testing.T) {
+	s := []string{"a", "b", "c"}
+	result := itertools.ToSlice(itertools.Enumerate(itertools.ToChan(s)))
+	expect := []itertools.Tuple2[int, string]{
+		{V1: 0, V2: "a"},
+		{V1: 1, V2: "b"},
+		{V1: 2, V2: "c"},
+	}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+}
+
+func testFilter(t *testing.T) {
+	s := []int{0, 1, 2, 3, 4, 5}
+	result := itertools.ToSlice(itertools.Filter(func(v int) bool { return v%2 == 0 }, itertools.ToChan(s)))
+	expect := []int{0, 2, 4}
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
+
+	result = itertools.ToSlice(itertools.FilterS(func(v int) bool { return v%2 == 0 }, s))
+
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, result)
+	}
 }
 
 func testMin(t *testing.T) {
