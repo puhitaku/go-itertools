@@ -8,6 +8,7 @@ translate:
 .PHONY:
 test:
 	@go tool go2go test
+	@rm -f *.go ./itertools/*.go
 
 .PHONY:
 fmt:
