@@ -24,7 +24,7 @@ func Any(it []bool) bool {
 	return false
 }
 
-func Enumerate[T any](it <-chan T) <-chan Tuple2[int, T] {
+func EnumerateC[T any](it <-chan T) <-chan Tuple2[int, T] {
 	// Enumerate enumerate the received values from channel.
 	// Use this when you handle infinite, too huge, or unpredictable channels.
 	// For slices, you'd better use the native way; `for i, v := range s { ... }`
@@ -43,7 +43,19 @@ func Enumerate[T any](it <-chan T) <-chan Tuple2[int, T] {
 	return c
 }
 
-func Filter[T any](fn func(v T) bool, it <-chan T) <-chan T {
+func Filter[T any](fn func(v T) bool, it []T) []T {
+	var s []T
+
+	for i := range it {
+		if fn(it[i]) {
+			s = append(s, it[i])
+		}
+	}
+
+	return s
+}
+
+func FilterC[T any](fn func(v T) bool, it <-chan T) <-chan T {
 	c := make(chan T)
 
 	go func() {
@@ -58,40 +70,22 @@ func Filter[T any](fn func(v T) bool, it <-chan T) <-chan T {
 	return c
 }
 
-func FilterS[T any](fn func(v T) bool, it []T) <-chan T {
-	c := make(chan T)
+func Map[T1, T2 any](fn func(v T1) T2, it []T1) []T2 {
+	var s []T2
 
-	go func() {
-		for i := range it {
-			if fn(it[i]) {
-				c <- it[i]
-			}
-		}
-		close(c)
-	}()
+	for i := range it {
+		s = append(s, fn(it[i]))
+	}
 
-	return c
+	return s
 }
 
-func Map[T1, T2 any](fn func(v T1) T2, it <-chan T1) <-chan T2 {
+func MapC[T1, T2 any](fn func(v T1) T2, it <-chan T1) <-chan T2 {
 	c := make(chan T2)
 
 	go func() {
 		for v := range it {
 			c <- fn(v)
-		}
-		close(c)
-	}()
-
-	return c
-}
-
-func MapS[T1, T2 any](fn func(v T1) T2, it []T1) <-chan T2 {
-	c := make(chan T2)
-
-	go func() {
-		for i := range it {
-			c <- fn(it[i])
 		}
 		close(c)
 	}()
@@ -106,34 +100,88 @@ func copyS[T any](it []T) []T {
 }
 
 func Min[T Ordered](it ...T) T {
-	sort.Sort(toSortable(it))
-	return it[0]
+	min := it[0]
+	it = it[1:]
+
+	for i := range it {
+		if min > it[i] {
+			min = it[i]
+		}
+	}
+
+	return min
 }
 
 func MinS[T Ordered](it []T) T {
 	if len(it) < 1 {
 		panic("the arg is an empty sequence")
 	}
-	tmp := copyS(it)
-	sort.Sort(toSortable(tmp))
-	return tmp[0]
+
+	min := it[0]
+	it = it[1:]
+
+	for i := range it {
+		if min > it[i] {
+			min = it[i]
+		}
+	}
+
+	return min
 }
 
 func Max[T Ordered](it ...T) T {
-	sort.Sort(toSortable(it))
-	return it[len(it)-1]
+	max := it[0]
+	it = it[1:]
+
+	for i := range it {
+		if max < it[i] {
+			max = it[i]
+		}
+	}
+
+	return max
 }
 
 func MaxS[T Ordered](it []T) T {
-	if len(it) < 1 {
+	if len(it) == 0 {
 		panic("the arg is an empty sequence")
 	}
-	tmp := copyS(it)
-	sort.Sort(toSortable(tmp))
-	return tmp[len(tmp)-1]
+
+	max := it[0]
+	it = it[1:]
+
+	for i := range it {
+		if max < it[i] {
+			max = it[i]
+		}
+	}
+
+	return max
 }
 
-func Range(start, stop, step int) <-chan int {
+func Range(start, stop, step int) []int {
+	var it []int
+
+	if start < stop {
+		if step < 1 {
+			return it
+		}
+		for i := start; i < stop; i += step {
+			it = append(it, i)
+		}
+	} else {
+		if step > -1 {
+			return it
+		}
+		for i := start; i > stop; i += step {
+			it = append(it, i)
+		}
+	}
+
+	return it
+}
+
+func RangeC(start, stop, step int) <-chan int {
 	c := make(chan int)
 
 	go func() {
@@ -159,32 +207,63 @@ func Range(start, stop, step int) <-chan int {
 	return c
 }
 
-func Reversed[T any](it []T) <-chan T {
+func Reversed[T any](it []T) []T {
 	// Reversed returns a reversed slice.
 	// This operation is not in-place.
+
+	var s []T
+
+	for i := range it {
+		s = append(s, it[len(it)-1-i])
+	}
+
+	return s
+}
+
+func ReversedC[T any](it <-chan T) <-chan T {
+	// ReversedC is a variation of Reversed.
+	// Keep in mind that it won't send anything until the input channel closes.
 
 	c := make(chan T)
 
 	go func() {
 		defer close(c)
-		for i := range it {
-			c <- it[len(it)-1-i]
+
+		var buf []T
+		for v := range it {
+			buf = append(buf, v)
+		}
+
+		for i := range buf {
+			c <- buf[len(buf)-1-i]
 		}
 	}()
 
 	return c
 }
 
-func Sorted[T Ordered](it []T) <-chan T {
+func Sorted[T Ordered](it []T) []T {
+	tmp := copyS(it)
+	sort.Sort(toSortable(tmp))
+
+	return tmp
+}
+
+func SortedC[T Ordered](it <-chan T) <-chan T {
 	c := make(chan T)
 
 	go func() {
 		defer close(c)
-		tmp := copyS(it)
-		sort.Sort(toSortable(tmp))
+		var buf []T
 
-		for i := range tmp {
-			c <- tmp[i]
+		for v := range it {
+			buf = append(buf, v)
+		}
+
+		sort.Sort(toSortable(buf))
+
+		for i := range buf {
+			c <- buf[i]
 		}
 	}()
 
@@ -199,6 +278,14 @@ func Sum[T Addable](it []T) T {
 	return sum
 }
 
+func SumC[T Addable](it <-chan T) T {
+	var sum T
+	for v := range it {
+		sum += v
+	}
+	return sum
+}
+
 func SumIface[T AddableIface[T]](it []T) T {
 	sum := it[0]
 	for i := range it[1:] {
@@ -207,7 +294,26 @@ func SumIface[T AddableIface[T]](it []T) T {
 	return sum
 }
 
-func zip2[T1, T2 any](it1 <-chan T1, it2 <-chan T2, f1 T1, f2 T2, longest bool) chan Tuple2[T1, T2] {
+func SumIfaceC[T AddableIface[T]](it <-chan T) T {
+	var sum T
+	for v := range it {
+		sum = sum.Add(v)
+	}
+	return sum
+}
+
+func Zip2[T1, T2 any](it1 []T1, it2 []T2) []Tuple2[T1, T2] {
+	var s []Tuple2[T1, T2]
+	l := Min(len(it1), len(it2))
+
+	for i := 0; i < l; i++ {
+		s = append(s, Tuple2[T1, T2]{V1: it1[i], V2: it2[i]})
+	}
+
+	return s
+}
+
+func zip2c[T1, T2 any](it1 <-chan T1, it2 <-chan T2, f1 T1, f2 T2, longest bool) chan Tuple2[T1, T2] {
 	c := make(chan Tuple2[T1, T2])
 
 	go func() {
@@ -258,27 +364,24 @@ func zip2[T1, T2 any](it1 <-chan T1, it2 <-chan T2, f1 T1, f2 T2, longest bool) 
 	return c
 }
 
-func Zip2[T1, T2 any](it1 <-chan T1, it2 <-chan T2) chan Tuple2[T1, T2] {
+func Zip2C[T1, T2 any](it1 <-chan T1, it2 <-chan T2) chan Tuple2[T1, T2] {
 	var dummy1 T1
 	var dummy2 T2
-	return zip2(it1, it2, dummy1, dummy2, false)
+	return zip2c(it1, it2, dummy1, dummy2, false)
 }
 
-func Zip2S[T1, T2 any](it1 []T1, it2 []T2) chan Tuple2[T1, T2] {
-	c := make(chan Tuple2[T1, T2])
-	l := Min(len(it1), len(it2))
+func Zip3[T1, T2, T3 any](it1 []T1, it2 []T2, it3 []T3) []Tuple3[T1, T2, T3] {
+	var s []Tuple3[T1, T2, T3]
+	l := Min(len(it1), len(it2), len(it3))
 
-	go func() {
-		for i := 0; i < l; i++ {
-			c <- Tuple2[T1, T2]{V1: it1[i], V2: it2[i]}
-		}
-		close(c)
-	}()
+	for i := 0; i < l; i++ {
+		s = append(s, Tuple3[T1, T2, T3]{V1: it1[i], V2: it2[i], V3: it3[i]})
+	}
 
-	return c
+	return s
 }
 
-func zip3[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, f1 T1, f2 T2, f3 T3, longest bool) chan Tuple3[T1, T2, T3] {
+func zip3c[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, f1 T1, f2 T2, f3 T3, longest bool) chan Tuple3[T1, T2, T3] {
 	c := make(chan Tuple3[T1, T2, T3])
 
 	go func() {
@@ -382,28 +485,25 @@ func zip3[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, f1 T1, f2
 	return c
 }
 
-func Zip3[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3) chan Tuple3[T1, T2, T3] {
+func Zip3C[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3) chan Tuple3[T1, T2, T3] {
 	var dummy1 T1
 	var dummy2 T2
 	var dummy3 T3
-	return zip3(it1, it2, it3, dummy1, dummy2, dummy3, false)
+	return zip3c(it1, it2, it3, dummy1, dummy2, dummy3, false)
 }
 
-func Zip3S[T1, T2, T3 any](it1 []T1, it2 []T2, it3 []T3) chan Tuple3[T1, T2, T3] {
-	c := make(chan Tuple3[T1, T2, T3])
-	l := Min(len(it1), len(it2), len(it3))
+func Zip4[T1, T2, T3, T4 any](it1 []T1, it2 []T2, it3 []T3, it4 []T4) []Tuple4[T1, T2, T3, T4] {
+	var s []Tuple4[T1, T2, T3, T4]
+	l := Min(len(it1), len(it2), len(it3), len(it4))
 
-	go func() {
-		for i := 0; i < l; i++ {
-			c <- Tuple3[T1, T2, T3]{V1: it1[i], V2: it2[i], V3: it3[i]}
-		}
-		close(c)
-	}()
+	for i := 0; i < l; i++ {
+		s = append(s, Tuple4[T1, T2, T3, T4]{V1: it1[i], V2: it2[i], V3: it3[i], V4: it4[i]})
+	}
 
-	return c
+	return s
 }
 
-func zip4[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4, f1 T1, f2 T2, f3 T3, f4 T4, longest bool) chan Tuple4[T1, T2, T3, T4] {
+func zip4c[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4, f1 T1, f2 T2, f3 T3, f4 T4, longest bool) chan Tuple4[T1, T2, T3, T4] {
 	c := make(chan Tuple4[T1, T2, T3, T4])
 
 	go func() {
@@ -733,24 +833,10 @@ func zip4[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <
 	return c
 }
 
-func Zip4[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4) chan Tuple4[T1, T2, T3, T4] {
+func Zip4C[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4) chan Tuple4[T1, T2, T3, T4] {
 	var dummy1 T1
 	var dummy2 T2
 	var dummy3 T3
 	var dummy4 T4
-	return zip4(it1, it2, it3, it4, dummy1, dummy2, dummy3, dummy4, false)
-}
-
-func Zip4S[T1, T2, T3, T4 any](it1 []T1, it2 []T2, it3 []T3, it4 []T4) chan Tuple4[T1, T2, T3, T4] {
-	c := make(chan Tuple4[T1, T2, T3, T4])
-	l := Min(len(it1), len(it2), len(it3), len(it4))
-
-	go func() {
-		for i := 0; i < l; i++ {
-			c <- Tuple4[T1, T2, T3, T4]{V1: it1[i], V2: it2[i], V3: it3[i], V4: it4[i]}
-		}
-		close(c)
-	}()
-
-	return c
+	return zip4c(it1, it2, it3, it4, dummy1, dummy2, dummy3, dummy4, false)
 }
