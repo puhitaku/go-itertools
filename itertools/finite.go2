@@ -2,7 +2,19 @@
 
 package itertools
 
-func Accumulate[T Addable](iter <-chan T) chan T {
+func Accumulate[T Addable](iter []T) []T {
+	var s []T
+	var accum T
+
+	for i := range iter {
+		accum += iter[i]
+		s = append(s, accum)
+	}
+
+	return s
+}
+
+func AccumulateC[T Addable](iter <-chan T) chan T {
 	c := make(chan T)
 	var accum T
 
@@ -16,21 +28,19 @@ func Accumulate[T Addable](iter <-chan T) chan T {
 	return c
 }
 
-func AccumulateS[T Addable](iter []T) chan T {
-	c := make(chan T)
+func AccumulateIface[T AddableIface[T]](iter []T) []T {
+	var s []T
 	var accum T
 
-	go func() {
-		for _, v := range iter {
-			accum += v
-			c <- accum
-		}
-		close(c)
-	}()
-	return c
+	for i := range iter {
+		accum = accum.Add(iter[i])
+		s = append(s, accum)
+	}
+
+	return s
 }
 
-func AccumulateIface[T AddableIface[T]](iter <- chan T) chan T {
+func AccumulateIfaceC[T AddableIface[T]](iter <- chan T) chan T {
 	c := make(chan T)
 	var accum T
 
@@ -44,21 +54,19 @@ func AccumulateIface[T AddableIface[T]](iter <- chan T) chan T {
 	return c
 }
 
-func AccumulateIfaceS[T AddableIface[T]](iter []T) chan T {
-	c := make(chan T)
-	var accum T
+func Chain[T any](iter ...[]T) []T {
+	var s []T
 
-	go func() {
-		for _, v := range iter {
-			accum = accum.Add(v)
-			c <- accum
+	for i := range iter {
+		for j := range iter[i] {
+			s = append(s, iter[i][j])
 		}
-		close(c)
-	}()
-	return c
+	}
+
+	return s
 }
 
-func Chain[T any](iter ...<-chan T) chan T {
+func ChainC[T any](iter ...<-chan T) chan T {
 	c := make(chan T)
 
 	go func() {
@@ -69,36 +77,36 @@ func Chain[T any](iter ...<-chan T) chan T {
 		}
 		close(c)
 	}()
+
 	return c
 }
 
-func ChainS[T any](iter ...[]T) chan T {
-	c := make(chan T)
-
-	go func() {
-		for _, it := range iter {
-			for _, v := range it {
-				c <- v
-			}
-		}
-		close(c)
-	}()
-	return c
-}
-
-func ChainFromIterable[T any](iter []<-chan T) chan T {
+func ChainFromIterable[T any](iter [][]T) []T {
 	return Chain(iter...)
 }
 
-func ChainFromIterableS[T any](iter [][]T) chan T {
-	return ChainS(iter...)
+func ChainFromIterableC[T any](iter []<-chan T) chan T {
+	return ChainC(iter...)
 }
 
-func Compress[T any](data <-chan T, selectors <-chan bool) chan T {
+func Compress[T any](data []T, selectors []bool) []T {
+	var s []T
+
+	z := Zip2(data, selectors)
+	for i := range z {
+		if z[i].V2 {
+			s = append(s, z[i].V1)
+		}
+	}
+
+	return s
+}
+
+func CompressC[T any](data <-chan T, selectors <-chan bool) chan T {
 	c := make(chan T)
 
 	go func() {
-		z := Zip2(data, selectors)
+		z := Zip2C(data, selectors)
 		for v := range z {
 			if v.V2 {
 				c <- v.V1
@@ -109,22 +117,18 @@ func Compress[T any](data <-chan T, selectors <-chan bool) chan T {
 	return c
 }
 
-func CompressS[T any](data []T, selectors []bool) chan T {
-	c := make(chan T)
-
-	go func() {
-		z := Zip2S(data, selectors)
-		for v := range z {
-			if v.V2 {
-				c <- v.V1
-			}
+func DropWhile[T any](pred func(v T) bool, seq []T) []T {
+	start := 0
+	for start = range seq {
+		if !pred(seq[start]) {
+			break
 		}
-		close(c)
-	}()
-	return c
+	}
+
+	return seq[start:]
 }
 
-func DropWhile[T any](pred func(v T) bool, seq <-chan T) chan T {
+func DropWhileC[T any](pred func(v T) bool, seq <-chan T) chan T {
 	c := make(chan T)
 	drop := true
 
@@ -143,27 +147,17 @@ func DropWhile[T any](pred func(v T) bool, seq <-chan T) chan T {
 	return c
 }
 
-func DropWhileS[T any](pred func(v T) bool, seq []T) chan T {
-	c := make(chan T)
-
-	go func() {
-		start := 0
-		for start = range seq {
-			if !pred(seq[start]) {
-				break
-			}
+func TakeWhile[T any](pred func(v T) bool, seq []T) []T {
+	stop := 0
+	for stop = range seq {
+		if !pred(seq[stop]) {
+			break
 		}
-
-		for i := start; i < len(seq); i++ {
-			c <- seq[i]
-		}
-		close(c)
-	}()
-
-	return c
+	}
+	return seq[:stop]
 }
 
-func TakeWhile[T any](pred func(v T) bool, seq <-chan T) chan T {
+func TakeWhileC[T any](pred func(v T) bool, seq <-chan T) chan T {
 	c := make(chan T)
 
 	go func() {
@@ -179,38 +173,53 @@ func TakeWhile[T any](pred func(v T) bool, seq <-chan T) chan T {
 	return c
 }
 
-func TakeWhileS[T any](pred func(v T) bool, seq []T) chan T {
-	c := make(chan T)
-
-	go func() {
-		for i := 0; i < len(seq); i++ {
-			if !pred(seq[i]) {
-				break
-			}
-
-			c <- seq[i]
-		}
-		close(c)
-	}()
-
-	return c
-}
-
-func FilterFalse[T any](pred func(v T) bool, seq <-chan T) <-chan T {
+func FilterFalse[T any](pred func(v T) bool, seq []T) []T {
 	return Filter(func(v T)bool{ return !pred(v)}, seq)
 }
 
-func FilterFalseS[T any](pred func(v T) bool, seq []T) <-chan T {
-	return FilterS(func(v T)bool{ return !pred(v)}, seq)
+func FilterFalseC[T any](pred func(v T) bool, seq <-chan T) <-chan T {
+	return FilterC(func(v T)bool{ return !pred(v)}, seq)
 }
 
 type Group[T any] struct {
 	Key   T
+	Group []T
+}
+
+type GroupC[T any] struct {
+	Key   T
 	Group <-chan T
 }
 
-func GroupBy[T Comparable](seq <-chan T) chan Group[T] {
-	c := make(chan Group[T])
+func GroupBy[T Comparable](seq []T) []Group[T] {
+	var s []Group[T]
+
+	if len(seq) == 0 {
+		return []Group[T]{}
+	}
+
+	var curKey T
+
+	for i := range seq {
+		if i == 0 || curKey != seq[i] {
+			curKey = seq[i]
+			s = append(
+				s,
+				Group[T]{
+					Key:   curKey,
+					Group: []T{},
+				},
+			)
+		}
+
+		s[len(s)-1].Group = append(s[len(s)-1].Group, seq[i])
+	}
+
+	return s
+}
+
+func GroupByC[T Comparable](seq <-chan T) chan GroupC[T] {
+	c := make(chan GroupC[T])
 	var gc chan T
 
 	go func() {
@@ -232,7 +241,7 @@ func GroupBy[T Comparable](seq <-chan T) chan Group[T] {
 
 				curKey = v
 				gc = make(chan T)
-				c <- Group[T]{
+				c <- GroupC[T]{
 					Key:   curKey,
 					Group: gc,
 				}
@@ -246,47 +255,35 @@ func GroupBy[T Comparable](seq <-chan T) chan Group[T] {
 	return c
 }
 
-func GroupByS[T Comparable](seq []T) chan Group[T] {
-	c := make(chan Group[T])
-	var gc chan T
+func GroupByIface[T ComparableIface[T]](seq []T) []Group[T] {
+	var s []Group[T]
 
-	go func() {
-		defer func() {
-			close(c)
-			if gc != nil {
-				close(gc)
-			}
-		}()
+	if len(seq) == 0 {
+		return []Group[T]{}
+	}
 
-		if len(seq) == 0 {
-			return
-		}
+	var curKey T
 
-		var curKey T
-
-		for i := range seq {
-			if i == 0 || curKey != seq[i] {
-				if gc != nil {
-					close(gc)
-				}
-
-				curKey = seq[i]
-				gc = make(chan T)
-				c <- Group[T]{
+	for i := range seq {
+		if i == 0 || !curKey.Eq(seq[i]) {
+			curKey = seq[i]
+			s = append(
+				s,
+				Group[T]{
 					Key:   curKey,
-					Group: gc,
-				}
-			}
-
-			gc <- seq[i]
+					Group: []T{},
+				},
+			)
 		}
-	}()
 
-	return c
+		s[len(s)-1].Group = append(s[len(s)-1].Group, seq[i])
+	}
+
+	return s
 }
 
-func GroupByIface[T ComparableIface[T]](seq <-chan T) chan Group[T] {
-	c := make(chan Group[T])
+func GroupByIfaceC[T ComparableIface[T]](seq <-chan T) chan GroupC[T] {
+	c := make(chan GroupC[T])
 	var gc chan T
 
 	go func() {
@@ -308,7 +305,7 @@ func GroupByIface[T ComparableIface[T]](seq <-chan T) chan Group[T] {
 
 				curKey = v
 				gc = make(chan T)
-				c <- Group[T]{
+				c <- GroupC[T]{
 					Key:   curKey,
 					Group: gc,
 				}
@@ -322,46 +319,25 @@ func GroupByIface[T ComparableIface[T]](seq <-chan T) chan Group[T] {
 	return c
 }
 
-func GroupByIfaceS[T ComparableIface[T]](seq []T) chan Group[T] {
-	c := make(chan Group[T])
-	var gc chan T
+func ISlice[T any](seq []T, start, stop, step int) []T {
+	if step <= 0 {
+		panic("step must be more than zero")
+	}
 
-	go func() {
-		defer func() {
-			close(c)
-			if gc != nil {
-				close(gc)
-			}
-		}()
+	var s []T
 
-		if len(seq) == 0 {
-			return
-		}
+	if stop == 0 {
+		stop = len(seq)
+	}
 
-		var curKey T
+	for i := start; i < stop; i += step {
+		s = append(s, seq[i])
+	}
 
-		for i := range seq {
-			if i == 0 || !curKey.Eq(seq[i]) {
-				if gc != nil {
-					close(gc)
-				}
-
-				curKey = seq[i]
-				gc = make(chan T)
-				c <- Group[T]{
-					Key:   curKey,
-					Group: gc,
-				}
-			}
-
-			gc <- seq[i]
-		}
-	}()
-
-	return c
+	return s
 }
 
-func ISlice[T any](seq <-chan T, start, stop, step int) chan T {
+func ISliceC[T any](seq <-chan T, start, stop, step int) chan T {
 	if step <= 0 {
 		panic("step must be more than zero")
 	}
@@ -388,30 +364,22 @@ func ISlice[T any](seq <-chan T, start, stop, step int) chan T {
 	return c
 }
 
-func ISliceS[T any](seq []T, start, stop, step int) chan T {
-	if step <= 0 {
-		panic("step must be more than zero")
+func Tee[T any](seq []T, n int) [][]T {
+	// Tee create N copies of passed slice.
+	// Perhaps it's not a true "tee-ing" tho.
+
+	var ss [][]T
+
+	for i := 0; i < n; i++ {
+		ss = append(ss, make([]T, len(seq)))
+		copy(ss[len(ss)-1], seq)
 	}
 
-	c := make(chan T)
-
-	go func() {
-		defer close(c)
-
-		if stop == 0 {
-			stop = len(seq)
-		}
-
-		for i := start; i < stop; i += step {
-			c <- seq[i]
-		}
-	}()
-
-	return c
+	return ss
 }
 
-func Tee[T any](seq <-chan T, n int) []<-chan T {
-	// Tee creates N copies of passed channel.
+func TeeC[T any](seq <-chan T, n int) []<-chan T {
+	// TeeC creates N copies of passed channel.
 	//
 	// CAUTION and FIXME: the incoming channel that is shared among
 	// all tee'd channels will advance after ALL tee'd channels
@@ -457,151 +425,113 @@ func Tee[T any](seq <-chan T, n int) []<-chan T {
 	return csr
 }
 
-func TeeS[T any](seq []T, n int) []<-chan T {
-	var cs []chan T
-
-	for i := 0; i < n; i++ {
-		cs = append(cs, make(chan T))
-	}
-
-	go func() {
-		defer func() {
-			for i := range cs {
-				close(cs[i])
-			}
-		}()
-
-		for i := range seq {
-			for j := range cs {
-				cs[j] <- seq[i]
-			}
-		}
-	}()
-
-	var csr []<-chan T
-	for i := range cs {
-		csr = append(csr, cs[i])
-	}
-
-	return csr
-}
-
-func ZipLongest2[T1, T2 any](it1 <-chan T1, it2 <-chan T2, f1 T1, f2 T2) chan Tuple2[T1, T2] {
-	return zip2(it1, it2, f1, f2, true)
-}
-
-func ZipLongest2S[T1, T2 any](s1 []T1, s2 []T2, f1 T1, f2 T2) chan Tuple2[T1, T2] {
-	c := make(chan Tuple2[T1, T2])
+func ZipLongest2[T1, T2 any](s1 []T1, s2 []T2, f1 T1, f2 T2) []Tuple2[T1, T2] {
+	var s []Tuple2[T1, T2]
 	l := Max(len(s1), len(s2))
 
-	go func() {
-		for i := 0; i < l; i++ {
-			var v1 T1
-			var v2 T2
+	for i := 0; i < l; i++ {
+		var v1 T1
+		var v2 T2
 
-			if i < len(s1) {
-				v1 = s1[i]
-			} else {
-				v1 = f1
-			}
-
-			if i < len(s2) {
-				v2 = s2[i]
-			} else {
-				v2 = f2
-			}
-
-			c <- Tuple2[T1, T2]{V1: v1, V2: v2}
+		if i < len(s1) {
+			v1 = s1[i]
+		} else {
+			v1 = f1
 		}
-		close(c)
-	}()
 
-	return c
+		if i < len(s2) {
+			v2 = s2[i]
+		} else {
+			v2 = f2
+		}
+
+		s = append(s, Tuple2[T1, T2]{V1: v1, V2: v2})
+	}
+
+	return s
 }
 
-func ZipLongest3[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, f1 T1, f2 T2, f3 T3) chan Tuple3[T1, T2, T3] {
-	return zip3(it1, it2, it3, f1, f2, f3, true)
+func ZipLongest2C[T1, T2 any](it1 <-chan T1, it2 <-chan T2, f1 T1, f2 T2) chan Tuple2[T1, T2] {
+	return zip2c(it1, it2, f1, f2, true)
 }
 
-func ZipLongest3S[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3, f1 T1, f2 T2, f3 T3) chan Tuple3[T1, T2, T3] {
-	c := make(chan Tuple3[T1, T2, T3])
+func ZipLongest3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3, f1 T1, f2 T2, f3 T3) []Tuple3[T1, T2, T3] {
+	var s []Tuple3[T1, T2, T3]
 	l := Max(len(s1), len(s2), len(s3))
 
-	go func() {
-		for i := 0; i < l; i++ {
-			var v1 T1
-			var v2 T2
-			var v3 T3
+	for i := 0; i < l; i++ {
+		var v1 T1
+		var v2 T2
+		var v3 T3
 
-			if i < len(s1) {
-				v1 = s1[i]
-			} else {
-				v1 = f1
-			}
-
-			if i < len(s2) {
-				v2 = s2[i]
-			} else {
-				v2 = f2
-			}
-
-			if i < len(s3) {
-				v3 = s3[i]
-			} else {
-				v3 = f3
-			}
-
-			c <- Tuple3[T1, T2, T3]{V1: v1, V2: v2, V3: v3}
+		if i < len(s1) {
+			v1 = s1[i]
+		} else {
+			v1 = f1
 		}
-		close(c)
-	}()
 
-	return c
+		if i < len(s2) {
+			v2 = s2[i]
+		} else {
+			v2 = f2
+		}
+
+		if i < len(s3) {
+			v3 = s3[i]
+		} else {
+			v3 = f3
+		}
+
+		s = append(s, Tuple3[T1, T2, T3]{V1: v1, V2: v2, V3: v3})
+	}
+
+	return s
 }
 
-func ZipLongest4[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4, f1 T1, f2 T2, f3 T3, f4 T4) chan Tuple4[T1, T2, T3, T4] {
-	return zip4(it1, it2, it3, it4, f1, f2, f3, f4, true)
+func ZipLongest3C[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, f1 T1, f2 T2, f3 T3) chan Tuple3[T1, T2, T3] {
+	return zip3c(it1, it2, it3, f1, f2, f3, true)
 }
 
-func ZipLongest4S[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4, f1 T1, f2 T2, f3 T3, f4 T4) chan Tuple4[T1, T2, T3, T4] {
-	c := make(chan Tuple4[T1, T2, T3, T4])
+func ZipLongest4[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4, f1 T1, f2 T2, f3 T3, f4 T4) []Tuple4[T1, T2, T3, T4] {
+	var s []Tuple4[T1, T2, T3, T4]
 	l := Max(len(s1), len(s2), len(s3), len(s4))
 
-	go func() {
-		for i := 0; i < l; i++ {
-			var v1 T1
-			var v2 T2
-			var v3 T3
-			var v4 T4
+	for i := 0; i < l; i++ {
+		var v1 T1
+		var v2 T2
+		var v3 T3
+		var v4 T4
 
-			if i < len(s1) {
-				v1 = s1[i]
-			} else {
-				v1 = f1
-			}
-
-			if i < len(s2) {
-				v2 = s2[i]
-			} else {
-				v2 = f2
-			}
-
-			if i < len(s3) {
-				v3 = s3[i]
-			} else {
-				v3 = f3
-			}
-
-			if i < len(s4) {
-				v4 = s4[i]
-			} else {
-				v4 = f4
-			}
-
-			c <- Tuple4[T1, T2, T3, T4]{V1: v1, V2: v2, V3: v3, V4: v4}
+		if i < len(s1) {
+			v1 = s1[i]
+		} else {
+			v1 = f1
 		}
-		close(c)
-	}()
 
-	return c
+		if i < len(s2) {
+			v2 = s2[i]
+		} else {
+			v2 = f2
+		}
+
+		if i < len(s3) {
+			v3 = s3[i]
+		} else {
+			v3 = f3
+		}
+
+		if i < len(s4) {
+			v4 = s4[i]
+		} else {
+			v4 = f4
+		}
+
+		s = append(s, Tuple4[T1, T2, T3, T4]{V1: v1, V2: v2, V3: v3, V4: v4})
+	}
+
+	return s
+}
+
+func ZipLongest4C[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4, f1 T1, f2 T2, f3 T3, f4 T4) chan Tuple4[T1, T2, T3, T4] {
+	return zip4c(it1, it2, it3, it4, f1, f2, f3, f4, true)
 }
