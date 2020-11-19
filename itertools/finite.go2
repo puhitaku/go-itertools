@@ -2,6 +2,9 @@
 
 package itertools
 
+// Accumulate accumulates the slice by addition.
+// Built-in types that supports addition operator (+) are only supported.
+// See also: AccumulateIface
 func Accumulate[T Addable](iter []T) []T {
 	var s []T
 	var accum T
@@ -14,6 +17,8 @@ func Accumulate[T Addable](iter []T) []T {
 	return s
 }
 
+// AccumulateC is an alternative to Accumulate that inputs/outputs channels.
+// The output is synchronized to the input.
 func AccumulateC[T Addable](iter <-chan T) chan T {
 	c := make(chan T)
 	var accum T
@@ -28,6 +33,7 @@ func AccumulateC[T Addable](iter <-chan T) chan T {
 	return c
 }
 
+// AccumulateIface is an alternative to Accumulate that accepts arbitrary types that implements AddableIface[T].
 func AccumulateIface[T AddableIface[T]](iter []T) []T {
 	var s []T
 	var accum T
@@ -40,6 +46,8 @@ func AccumulateIface[T AddableIface[T]](iter []T) []T {
 	return s
 }
 
+// AccumulateIfaceC is an alternative to AccumulateIface that inputs/outputs channels.
+// The output is synchronized to the input.
 func AccumulateIfaceC[T AddableIface[T]](iter <- chan T) chan T {
 	c := make(chan T)
 	var accum T
@@ -54,6 +62,7 @@ func AccumulateIfaceC[T AddableIface[T]](iter <- chan T) chan T {
 	return c
 }
 
+// Chain concatenates the slices.
 func Chain[T any](iter ...[]T) []T {
 	var s []T
 
@@ -66,6 +75,8 @@ func Chain[T any](iter ...[]T) []T {
 	return s
 }
 
+// ChainC is an alternative to Chain that inputs/outputs channels.
+// The output is synchronized to the input.
 func ChainC[T any](iter ...<-chan T) chan T {
 	c := make(chan T)
 
@@ -81,14 +92,18 @@ func ChainC[T any](iter ...<-chan T) chan T {
 	return c
 }
 
+// ChainFromIterable is an alternative to Chain that inputs a slice of slices.
 func ChainFromIterable[T any](iter [][]T) []T {
 	return Chain(iter...)
 }
 
+// ChainFromIterableC is an alternative to ChainFromIterable that inputs a channel of slices.
+// The output is synchronized to the input.
 func ChainFromIterableC[T any](iter []<-chan T) chan T {
 	return ChainC(iter...)
 }
 
+// Compress scans and picks elements in data slice, marked by the elements in selectors slice.
 func Compress[T any](data []T, selectors []bool) []T {
 	var s []T
 
@@ -102,6 +117,8 @@ func Compress[T any](data []T, selectors []bool) []T {
 	return s
 }
 
+// CompressC is an alternative to Compress that inputs/outputs channels.
+// The output is synchronized to the input.
 func CompressC[T any](data <-chan T, selectors <-chan bool) chan T {
 	c := make(chan T)
 
@@ -117,6 +134,7 @@ func CompressC[T any](data <-chan T, selectors <-chan bool) chan T {
 	return c
 }
 
+// DropWhile feeds pred function each elements in seq and drops them until the pred func returns false.
 func DropWhile[T any](pred func(v T) bool, seq []T) []T {
 	start := 0
 	for start = range seq {
@@ -128,6 +146,8 @@ func DropWhile[T any](pred func(v T) bool, seq []T) []T {
 	return seq[start:]
 }
 
+// DropWhileC is an alternative to DropWhile that inputs/outputs channels.
+// The output is synchronized to the input.
 func DropWhileC[T any](pred func(v T) bool, seq <-chan T) chan T {
 	c := make(chan T)
 	drop := true
@@ -147,6 +167,7 @@ func DropWhileC[T any](pred func(v T) bool, seq <-chan T) chan T {
 	return c
 }
 
+// DropWhile feeds pred function each elements in seq and picks them until the pred func returns false.
 func TakeWhile[T any](pred func(v T) bool, seq []T) []T {
 	stop := 0
 	for stop = range seq {
@@ -157,6 +178,8 @@ func TakeWhile[T any](pred func(v T) bool, seq []T) []T {
 	return seq[:stop]
 }
 
+// TakeWhileC is an alternative to TakeWhile that inputs/outputs channels.
+// The output is synchronized to the input.
 func TakeWhileC[T any](pred func(v T) bool, seq <-chan T) chan T {
 	c := make(chan T)
 
@@ -173,24 +196,31 @@ func TakeWhileC[T any](pred func(v T) bool, seq <-chan T) chan T {
 	return c
 }
 
+// FilterFalse is an alternative to Filter that negates the pred function;
+// falsy values are picked. Truthy values are dropped.
 func FilterFalse[T any](pred func(v T) bool, seq []T) []T {
 	return Filter(func(v T)bool{ return !pred(v)}, seq)
 }
 
+// FilterFalseC is an alternative to FilterFalse that inputs/outputs channels.
+// The output is synchronized to the input.
 func FilterFalseC[T any](pred func(v T) bool, seq <-chan T) <-chan T {
 	return FilterC(func(v T)bool{ return !pred(v)}, seq)
 }
 
+// Group is a wrapper struct that contains the key and elements of a group.
 type Group[T any] struct {
 	Key   T
 	Group []T
 }
 
+// GroupC is a wrapper struct that contains the key and element channel of a group.
 type GroupC[T any] struct {
 	Key   T
 	Group <-chan T
 }
 
+// GroupBy groups equal and consecutive elements in the slice.
 func GroupBy[T Comparable](seq []T) []Group[T] {
 	var s []Group[T]
 
@@ -218,6 +248,10 @@ func GroupBy[T Comparable](seq []T) []Group[T] {
 	return s
 }
 
+// GroupByC is an alternative to GroupBy that inputs/outputs channels.
+// Grouping operation is not buffered; receive all elements in a group
+// before trying to receive the next group or it'll deadlock.
+// The output is synchronized to the input.
 func GroupByC[T Comparable](seq <-chan T) chan GroupC[T] {
 	c := make(chan GroupC[T])
 	var gc chan T
@@ -255,6 +289,7 @@ func GroupByC[T Comparable](seq <-chan T) chan GroupC[T] {
 	return c
 }
 
+// GroupByIface is an alternative to GroupBy that accepts arbitrary types implements ComparableIface[T].
 func GroupByIface[T ComparableIface[T]](seq []T) []Group[T] {
 	var s []Group[T]
 
@@ -282,6 +317,10 @@ func GroupByIface[T ComparableIface[T]](seq []T) []Group[T] {
 	return s
 }
 
+// GroupByIfaceC is an alternative to GroupByC that accepts arbitrary types implements ComparableIface[T].
+// Grouping operation is not buffered; receive all elements in a group
+// before trying to receive the next group or it'll deadlock.
+// The output is synchronized to the input.
 func GroupByIfaceC[T ComparableIface[T]](seq <-chan T) chan GroupC[T] {
 	c := make(chan GroupC[T])
 	var gc chan T
@@ -319,6 +358,7 @@ func GroupByIfaceC[T ComparableIface[T]](seq <-chan T) chan GroupC[T] {
 	return c
 }
 
+// ISlice picks the elements of the slice in the similar rule of Range.
 func ISlice[T any](seq []T, start, stop, step int) []T {
 	if step <= 0 {
 		panic("step must be more than zero")
@@ -337,6 +377,8 @@ func ISlice[T any](seq []T, start, stop, step int) []T {
 	return s
 }
 
+// ISliceC is an alternative to ISlice that inputs/outputs channels.
+// The output is synchronized to the input.
 func ISliceC[T any](seq <-chan T, start, stop, step int) chan T {
 	if step <= 0 {
 		panic("step must be more than zero")
@@ -364,10 +406,8 @@ func ISliceC[T any](seq <-chan T, start, stop, step int) chan T {
 	return c
 }
 
+// Tee creates N copies of the slice.
 func Tee[T any](seq []T, n int) [][]T {
-	// Tee create N copies of passed slice.
-	// Perhaps it's not a true "tee-ing" tho.
-
 	var ss [][]T
 
 	for i := 0; i < n; i++ {
@@ -378,24 +418,24 @@ func Tee[T any](seq []T, n int) [][]T {
 	return ss
 }
 
+// TeeC creates N copies of the channel.
+//
+// CAUTION: the incoming channel that is shared among
+// all tee'd channels will advance after ALL tee'd channels
+// receive the current value.
+//
+// Let's say there are three channels. Namely:
+// - C: the original channel
+// - T1: 1st tee'd copy of C
+// - T2: 2nd tee'd copy of C
+//
+// 1. Goroutine A consumes T1.
+// 2. Goro B is too busy to consume T2 for now.
+// 3. Goro A tries to consume the next value via T1 but it blocks.
+//    It's because C won't advance until goro B consumes T2.
+//
+// This will be fixed after we implement a buffered Tee.
 func TeeC[T any](seq <-chan T, n int) []<-chan T {
-	// TeeC creates N copies of passed channel.
-	//
-	// CAUTION and FIXME: the incoming channel that is shared among
-	// all tee'd channels will advance after ALL tee'd channels
-	// consume the current value.
-	//
-	// Let's say there are three channels. Namely:
-	// - C: the original channel
-	// - T1: 1st tee'd copy of C
-	// - T2: 2nd tee'd copy of C
-	//
-	// 1. Goroutine A consumes T1.
-	// 2. Goro B is too busy to consume T2 for now.
-	// 3. Goro A tries to consume the next value via T1 but it blocks.
-	//    It's because C won't advance until goro B consumes T2.
-	//
-	// This will be fixed after we implement a generic buffer.
 
 	var cs []chan T
 
@@ -425,6 +465,10 @@ func TeeC[T any](seq <-chan T, n int) []<-chan T {
 	return csr
 }
 
+// ZipLongest2 combines each elements in two input slices into a slice of tuples.
+// ZipLongest2 will stop zipping when it reaches the end of the LONGEST slice.
+// Other shorter slices are filled with "fillers", namely f1 and f2.
+// See also: Zip2
 func ZipLongest2[T1, T2 any](s1 []T1, s2 []T2, f1 T1, f2 T2) []Tuple2[T1, T2] {
 	var s []Tuple2[T1, T2]
 	l := Max(len(s1), len(s2))
@@ -451,10 +495,15 @@ func ZipLongest2[T1, T2 any](s1 []T1, s2 []T2, f1 T1, f2 T2) []Tuple2[T1, T2] {
 	return s
 }
 
+// ZipLongest2C is an alternative to ZipLongest2 that inputs/outputs channels.
 func ZipLongest2C[T1, T2 any](it1 <-chan T1, it2 <-chan T2, f1 T1, f2 T2) chan Tuple2[T1, T2] {
 	return zip2c(it1, it2, f1, f2, true)
 }
 
+// ZipLongest3 combines each elements in two input slices into a slice of tuples.
+// ZipLongest3 will stop zipping when it reaches the end of the LONGEST slice.
+// Other shorter slices are filled with "fillers", namely f1, f2, and f3.
+// See also: Zip3
 func ZipLongest3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3, f1 T1, f2 T2, f3 T3) []Tuple3[T1, T2, T3] {
 	var s []Tuple3[T1, T2, T3]
 	l := Max(len(s1), len(s2), len(s3))
@@ -488,6 +537,7 @@ func ZipLongest3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3, f1 T1, f2 T2, f3 T3)
 	return s
 }
 
+// ZipLongest3C is an alternative to ZipLongest3 that inputs/outputs channels.
 func ZipLongest3C[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, f1 T1, f2 T2, f3 T3) chan Tuple3[T1, T2, T3] {
 	return zip3c(it1, it2, it3, f1, f2, f3, true)
 }
@@ -532,6 +582,10 @@ func ZipLongest4[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4, f1 T1, 
 	return s
 }
 
+// ZipLongest4 combines each elements in two input slices into a slice of tuples.
+// ZipLongest4 will stop zipping when it reaches the end of the LONGEST slice.
+// Other shorter slices are filled with "fillers", namely f1, f2, f3, and f4.
+// See also: Zip4
 func ZipLongest4C[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4, f1 T1, f2 T2, f3 T3, f4 T4) chan Tuple4[T1, T2, T3, T4] {
 	return zip4c(it1, it2, it3, it4, f1, f2, f3, f4, true)
 }

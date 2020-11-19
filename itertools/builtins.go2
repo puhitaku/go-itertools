@@ -6,6 +6,7 @@ import (
 	"sort"
 )
 
+// All returns if the slice has only trues.
 func All(it []bool) bool {
 	for i := range it {
 		if !it[i] {
@@ -15,6 +16,7 @@ func All(it []bool) bool {
 	return true
 }
 
+// Any returns if the slice has one or more trues.
 func Any(it []bool) bool {
 	for i := range it {
 		if it[i] {
@@ -24,11 +26,9 @@ func Any(it []bool) bool {
 	return false
 }
 
+// EnumerateC enumerates received values from the channel.
+// For slices, you'd better use the native way; `for i, v := range s { ... }`
 func EnumerateC[T any](it <-chan T) <-chan Tuple2[int, T] {
-	// Enumerate enumerate the received values from channel.
-	// Use this when you handle infinite, too huge, or unpredictable channels.
-	// For slices, you'd better use the native way; `for i, v := range s { ... }`
-
 	c := make(chan Tuple2[int, T])
 
 	go func() {
@@ -43,6 +43,9 @@ func EnumerateC[T any](it <-chan T) <-chan Tuple2[int, T] {
 	return c
 }
 
+// Filter filters the input slice with the function.
+// Each values are fed to the function then it decides if the given value
+// is worth to keep or not.
 func Filter[T any](fn func(v T) bool, it []T) []T {
 	var s []T
 
@@ -55,6 +58,8 @@ func Filter[T any](fn func(v T) bool, it []T) []T {
 	return s
 }
 
+// FilterC is an alternative of Filter that inputs/outputs channels.
+// The output is synchronized to the input.
 func FilterC[T any](fn func(v T) bool, it <-chan T) <-chan T {
 	c := make(chan T)
 
@@ -70,6 +75,7 @@ func FilterC[T any](fn func(v T) bool, it <-chan T) <-chan T {
 	return c
 }
 
+// Map applies the functions to each values in the slice.
 func Map[T1, T2 any](fn func(v T1) T2, it []T1) []T2 {
 	var s []T2
 
@@ -80,6 +86,8 @@ func Map[T1, T2 any](fn func(v T1) T2, it []T1) []T2 {
 	return s
 }
 
+// MapC is an alternative of Map that inputs/outputs channels.
+// The output is synchronized to the input.
 func MapC[T1, T2 any](fn func(v T1) T2, it <-chan T1) <-chan T2 {
 	c := make(chan T2)
 
@@ -99,6 +107,8 @@ func copyS[T any](it []T) []T {
 	return tmp
 }
 
+// Min returns the minimum value of the arguments.
+// Built-in types that supports comparison operators (<, >) are only supported.
 func Min[T Ordered](it ...T) T {
 	min := it[0]
 	it = it[1:]
@@ -112,6 +122,8 @@ func Min[T Ordered](it ...T) T {
 	return min
 }
 
+// MinS is an alternative of Min that inputs a slice.
+// Built-in types that supports comparison operators (<, >) are only supported.
 func MinS[T Ordered](it []T) T {
 	if len(it) < 1 {
 		panic("the arg is an empty sequence")
@@ -129,6 +141,8 @@ func MinS[T Ordered](it []T) T {
 	return min
 }
 
+// Max returns the maximum value of the arguments.
+// Built-in types that supports comparison operators (<, >) are only supported.
 func Max[T Ordered](it ...T) T {
 	max := it[0]
 	it = it[1:]
@@ -142,6 +156,8 @@ func Max[T Ordered](it ...T) T {
 	return max
 }
 
+// MaxS is an alternative of Max that inputs a slice.
+// Built-in types that supports comparison operators (<, >) are only supported.
 func MaxS[T Ordered](it []T) T {
 	if len(it) == 0 {
 		panic("the arg is an empty sequence")
@@ -159,6 +175,9 @@ func MaxS[T Ordered](it []T) T {
 	return max
 }
 
+// Range generates a slice of discrete integers that is defined by "start", "stop", and "step".
+// The values starts from the "start" and it increases in "step" per iteration and stops very before "stop".
+// In a mathematical way, it's defined as [start, stop).
 func Range(start, stop, step int) []int {
 	var it []int
 
@@ -181,6 +200,7 @@ func Range(start, stop, step int) []int {
 	return it
 }
 
+// RangeC is an alternative of Range that outputs a channel.
 func RangeC(start, stop, step int) <-chan int {
 	c := make(chan int)
 
@@ -207,10 +227,9 @@ func RangeC(start, stop, step int) <-chan int {
 	return c
 }
 
+// Reversed reverses the slice.
+// This operation is not in-place (the slice will be copied.)
 func Reversed[T any](it []T) []T {
-	// Reversed returns a reversed slice.
-	// This operation is not in-place.
-
 	var s []T
 
 	for i := range it {
@@ -220,10 +239,10 @@ func Reversed[T any](it []T) []T {
 	return s
 }
 
+// ReversedC is an alternative of Reversed that inputs/outputs channels.
+// The output is not synchronized to the input: it'll start sending values after the input channel closes.
+//
 func ReversedC[T any](it <-chan T) <-chan T {
-	// ReversedC is a variation of Reversed.
-	// Keep in mind that it won't send anything until the input channel closes.
-
 	c := make(chan T)
 
 	go func() {
@@ -242,6 +261,9 @@ func ReversedC[T any](it <-chan T) <-chan T {
 	return c
 }
 
+// Sorted sorts the slice.
+// Built-in types that supports comparison operators (<, >) are only supported.
+// This operations is not in-place (the slice will be copied.)
 func Sorted[T Ordered](it []T) []T {
 	tmp := copyS(it)
 	sort.Sort(toSortable(tmp))
@@ -249,6 +271,8 @@ func Sorted[T Ordered](it []T) []T {
 	return tmp
 }
 
+// SortedC is an alternative of Sorted that inputs/outputs channels.
+// The output is not synchronized to the input: it'll start sending values after sorting is finished.
 func SortedC[T Ordered](it <-chan T) <-chan T {
 	c := make(chan T)
 
@@ -270,6 +294,9 @@ func SortedC[T Ordered](it <-chan T) <-chan T {
 	return c
 }
 
+// Sum aggregates the slice with addition (+) operator.
+// Built-in types that supports addition operator (+) are only supported.
+// See also: SumIface
 func Sum[T Addable](it []T) T {
 	sum := it[0]
 	for i := range it[1:] {
@@ -278,6 +305,8 @@ func Sum[T Addable](it []T) T {
 	return sum
 }
 
+// SumC is an alternative to Sum that inputs a channel.
+// It'll return after the input channel closes.
 func SumC[T Addable](it <-chan T) T {
 	var sum T
 	for v := range it {
@@ -286,6 +315,7 @@ func SumC[T Addable](it <-chan T) T {
 	return sum
 }
 
+// SumIface is an alternative to Sum that accepts arbitrary types which implements AddableIface[T].
 func SumIface[T AddableIface[T]](it []T) T {
 	sum := it[0]
 	for i := range it[1:] {
@@ -294,6 +324,8 @@ func SumIface[T AddableIface[T]](it []T) T {
 	return sum
 }
 
+// SumIfaceC is an alternative to SumIface that inputs a channel.
+// It'll return after the input channel closes.
 func SumIfaceC[T AddableIface[T]](it <-chan T) T {
 	var sum T
 	for v := range it {
@@ -302,6 +334,9 @@ func SumIfaceC[T AddableIface[T]](it <-chan T) T {
 	return sum
 }
 
+// Zip2 combines each elements in two input slices into a slice of tuples.
+// Zip2 will stop zipping when it reaches an end of any slices.
+// See also: ZipLongest2
 func Zip2[T1, T2 any](it1 []T1, it2 []T2) []Tuple2[T1, T2] {
 	var s []Tuple2[T1, T2]
 	l := Min(len(it1), len(it2))
@@ -313,6 +348,9 @@ func Zip2[T1, T2 any](it1 []T1, it2 []T2) []Tuple2[T1, T2] {
 	return s
 }
 
+// zip2c is the inner function that supports both shortest and longest zip.
+// it1 ~ it2 are input channels and f1 ~ f2 are "fillers" for longest zip.
+// The output is synchronized to the input and tries to detect closes as early as possible.
 func zip2c[T1, T2 any](it1 <-chan T1, it2 <-chan T2, f1 T1, f2 T2, longest bool) chan Tuple2[T1, T2] {
 	c := make(chan Tuple2[T1, T2])
 
@@ -364,12 +402,17 @@ func zip2c[T1, T2 any](it1 <-chan T1, it2 <-chan T2, f1 T1, f2 T2, longest bool)
 	return c
 }
 
+// Zip2C is an alternative to Zip2 that inputs/outputs channels.
+// The output is synchronized to the input and tries to detect closes as early as possible.
 func Zip2C[T1, T2 any](it1 <-chan T1, it2 <-chan T2) chan Tuple2[T1, T2] {
 	var dummy1 T1
 	var dummy2 T2
 	return zip2c(it1, it2, dummy1, dummy2, false)
 }
 
+// Zip3 combines each elements in two input slices into a slice of tuples.
+// Zip3 will stop zipping when it reaches an end of any slices.
+// See also: ZipLongest3
 func Zip3[T1, T2, T3 any](it1 []T1, it2 []T2, it3 []T3) []Tuple3[T1, T2, T3] {
 	var s []Tuple3[T1, T2, T3]
 	l := Min(len(it1), len(it2), len(it3))
@@ -381,6 +424,9 @@ func Zip3[T1, T2, T3 any](it1 []T1, it2 []T2, it3 []T3) []Tuple3[T1, T2, T3] {
 	return s
 }
 
+// zip3c is the inner function that supports both shortest and longest zip.
+// it1 ~ it3 are input channels and f1 ~ f3 are "fillers" for longest zip.
+// The output is synchronized to the input and tries to detect closes as early as possible.
 func zip3c[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, f1 T1, f2 T2, f3 T3, longest bool) chan Tuple3[T1, T2, T3] {
 	c := make(chan Tuple3[T1, T2, T3])
 
@@ -485,6 +531,8 @@ func zip3c[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, f1 T1, f
 	return c
 }
 
+// Zip3C is an alternative to Zip3 that inputs/outputs channels.
+// The output is synchronized to the input and tries to detect closes as early as possible.
 func Zip3C[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3) chan Tuple3[T1, T2, T3] {
 	var dummy1 T1
 	var dummy2 T2
@@ -492,6 +540,9 @@ func Zip3C[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3) chan Tup
 	return zip3c(it1, it2, it3, dummy1, dummy2, dummy3, false)
 }
 
+// Zip4 combines each elements in two input slices into a slice of tuples.
+// Zip4 will stop zipping when it reaches an end of any slices.
+// See also: ZipLongest4
 func Zip4[T1, T2, T3, T4 any](it1 []T1, it2 []T2, it3 []T3, it4 []T4) []Tuple4[T1, T2, T3, T4] {
 	var s []Tuple4[T1, T2, T3, T4]
 	l := Min(len(it1), len(it2), len(it3), len(it4))
@@ -503,7 +554,15 @@ func Zip4[T1, T2, T3, T4 any](it1 []T1, it2 []T2, it3 []T3, it4 []T4) []Tuple4[T
 	return s
 }
 
+// zip4c is the inner function that supports both shortest and longest zip.
+// it1 ~ it4 are input channels and f1 ~ f4 are "fillers" for longest zip.
+// The output is synchronized to the input and tries to detect closes as early as possible.
 func zip4c[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4, f1 T1, f2 T2, f3 T3, f4 T4, longest bool) chan Tuple4[T1, T2, T3, T4] {
+	// FIXME: can't we implement Zip's more beautifully? Including Zip2, Zip3, and Zip4!
+	// The current implementation focuses on the fastest detection of close of any channels.
+	// The worst and best delay are the same even we receive values in order (it1 -> it2 -> it3 -> it4)
+	// while current implementation should detect closes earlier when there are slow channels.
+
 	c := make(chan Tuple4[T1, T2, T3, T4])
 
 	go func() {
@@ -833,6 +892,8 @@ func zip4c[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 
 	return c
 }
 
+// Zip4C is an alternative to Zip4 that inputs/outputs channels.
+// The output is synchronized to the input and tries to detect closes as early as possible.
 func Zip4C[T1, T2, T3, T4 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, it4 <-chan T4) chan Tuple4[T1, T2, T3, T4] {
 	var dummy1 T1
 	var dummy2 T2

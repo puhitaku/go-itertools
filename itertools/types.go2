@@ -1,62 +1,75 @@
 package itertools
 
+// Comparable is a group of built-in types that implements equal (=) operator
 type Comparable interface {
-	// Types that implements = operator
 	type bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, string, interface{}
 }
 
+// ComparableIface[T] is an interface for equality evaluation.
 type ComparableIface[T any] interface {
 	Eq(v T) bool
 }
 
+// Ordered is a group of built-in types that implements greater-than and less-than (>, <) operators
 type Ordered interface {
-	// Types that implements < and > operators intrinsically
 	type int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, string
 }
 
+// Sortable is a wrapper struct that magically implements sort.Interface for built-in types.
+// With this, any slices with ordered built-in type can be sorted by sort.Sort.
 type Sortable[T Ordered] struct {
 	it []T
 }
 
+// Sortable[T].Len implements sort.Interface.
 func (s Sortable[T]) Len() int {
 	return len(s.it)
 }
 
+// Sortable[T].Less implements sort.Interface.
 func (s Sortable[T]) Less(i, j int) bool {
 	return s.it[i] < s.it[j]
 }
 
+// Sortable[T].Swap implements sort.Interface.
 func (s Sortable[T]) Swap(i, j int) {
 	s.it[i], s.it[j] = s.it[j], s.it[i]
 }
 
+// toSortable converts the input slice into a generic sortable slice.
 func toSortable[T Ordered](it []T) Sortable[T] {
 	return Sortable[T]{it: it}
 }
 
+// Incrementable is a group of built-in types that implements increment (++) operator
 type Incrementable interface {
 	type int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128
 }
 
+// Addable is a group of built-in types that implements addition (+) operator
 type Addable interface {
 	type int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, string
 }
 
+// AddableIface[T] is an interface for addition.
 type AddableIface[T any] interface {
 	Add(v T) T
 }
 
+// Tuple2[T1, T2] is a generic 2-tuple.
 type Tuple2[T1, T2 any] struct {
 	V1 T1
 	V2 T2
 }
 
+// Tuple3[T1, T2, T3] is a generic 3-tuple.
 type Tuple3[T1, T2, T3 any] struct {
 	V1 T1
 	V2 T2
 	V3 T3
 }
 
+// Tuple4[T1, T2, T3, T4] is a generic 4-tuple.
 type Tuple4[T1, T2, T3, T4 any] struct {
 	V1 T1
 	V2 T2

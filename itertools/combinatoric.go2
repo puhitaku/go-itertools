@@ -1,5 +1,6 @@
 package itertools
 
+// Product2 generates a product of elements in the slices.
 func Product2[T1, T2 any](s1 []T1, s2 []T2) []Tuple2[T1, T2] {
 	var s []Tuple2[T1, T2]
 
@@ -12,8 +13,11 @@ func Product2[T1, T2 any](s1 []T1, s2 []T2) []Tuple2[T1, T2] {
 	return s
 }
 
+// Product2C is an alternative to Product2 that inputs/outputs channels.
+// The output is not synchronized to the input; elements from c1 and c2 are buffered
+// until all input channels close.
 func Product2C[T1, T2 any](c1 <-chan T1, c2 <-chan T2) <-chan Tuple2[T1, T2] {
-	// TODO: replace with more efficient and realtime algorithm
+	// TODO: I suspect that product can be synchronous to the input (emit product every time it receives new values.)
 	c := make(chan Tuple2[T1, T2])
 
 	go func() {
@@ -28,6 +32,7 @@ func Product2C[T1, T2 any](c1 <-chan T1, c2 <-chan T2) <-chan Tuple2[T1, T2] {
 	return c
 }
 
+// Product3 generates a product of elements in the slices.
 func Product3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3) []Tuple3[T1, T2, T3] {
 	var s []Tuple3[T1, T2, T3]
 
@@ -42,6 +47,9 @@ func Product3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3) []Tuple3[T1, T2, T3] {
 	return s
 }
 
+// Product3C is an alternative to Product3 that inputs/outputs channels.
+// The output is not synchronized to the input; elements from c1 ~ c3 are buffered
+// until all input channels close.
 func Product3C[T1, T2, T3 any](c1 <-chan T1, c2 <-chan T2, c3 <-chan T3) <-chan Tuple3[T1, T2, T3] {
 	// TODO: replace with more efficient and realtime algorithm
 	c := make(chan Tuple3[T1, T2, T3])
@@ -58,6 +66,7 @@ func Product3C[T1, T2, T3 any](c1 <-chan T1, c2 <-chan T2, c3 <-chan T3) <-chan 
 	return c
 }
 
+// Product4 generates a product of elements in the slices.
 func Product4[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4) []Tuple4[T1, T2, T3, T4] {
 	var s []Tuple4[T1, T2, T3, T4]
 
@@ -74,6 +83,9 @@ func Product4[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4) []Tuple4[T
 	return s
 }
 
+// Product4C is an alternative to Product4 that inputs/outputs channels.
+// The output is not synchronized to the input; elements from c1 ~ c4 are buffered
+// until all input channels close.
 func Product4C[T1, T2, T3, T4 any](c1 <-chan T1, c2 <-chan T2, c3 <-chan T3, c4 <-chan T4) <-chan Tuple4[T1, T2, T3, T4] {
 	// TODO: replace with more efficient and realtime algorithm
 	c := make(chan Tuple4[T1, T2, T3, T4])
@@ -90,10 +102,13 @@ func Product4C[T1, T2, T3, T4 any](c1 <-chan T1, c2 <-chan T2, c3 <-chan T3, c4 
 	return c
 }
 
+// Permutations generates permutations of the slice.
 func Permutations[T any](iter []T, r int) [][]T {
 	return ToSlice(PermutationsC(ToChan(iter), r))
 }
 
+// PermutationsC is an alternative to Permutations that inputs/outputs channels.
+// The output is not synchronized to the input.
 func PermutationsC[T any](iterC <-chan T, r int) chan []T {
 	iter := ToSlice(iterC)
 	c := make(chan []T)
@@ -162,10 +177,13 @@ outer:
 	return c
 }
 
+// Combinations generates combinations of the slice.
 func Combinations[T any](iter []T, r int) [][]T {
 	return ToSlice(CombinationsC(ToChan(iter), r))
 }
 
+// CombinationsC is an alternative to Combinations that inputs/outputs channels.
+// The output is not synchronized to the input.
 func CombinationsC[T any](iterC <-chan T, r int) chan []T {
 	iter := ToSlice(iterC)
 	c := make(chan []T)
@@ -217,10 +235,12 @@ func CombinationsC[T any](iterC <-chan T, r int) chan []T {
 	return c
 }
 
+// CombinationsWithReplacement generates combinations that contains repeated values.
 func CombinationsWithReplacement[T any](iter []T, r int) [][]T {
 	return ToSlice(CombinationsWithReplacementC(iter, r))
 }
 
+// CombinationsWithReplacementC is an alternative to CombinationsWithReplacement that inputs/outputs channels.
 func CombinationsWithReplacementC[T any](iter []T, r int) chan []T {
 	c := make(chan []T)
 	var indices []int

@@ -2,6 +2,9 @@
 
 package itertools
 
+// Count counts up a value from "start" and emits it infinitely.
+// Bulit-in types that implements increment operator (++) are only supported.
+// TODO: implement CountIface
 func Count[T Incrementable](start T) chan T {
 	c := make(chan T)
 	v := start
@@ -16,6 +19,7 @@ func Count[T Incrementable](start T) chan T {
 	return c
 }
 
+// Cycle emits the elements in the slice infinitely.
 func Cycle[T any](iter []T) chan T {
 	c := make(chan T)
 	go func() {
@@ -28,6 +32,8 @@ func Cycle[T any](iter []T) chan T {
 	return c
 }
 
+// CycleC is an alternative of Cycle that inputs a channel.
+// The output is synchronized to the input and repeats it infinitely.
 func CycleC[T any](iter <-chan T) chan T {
 	c := make(chan T)
 	buf := []T{}
@@ -47,6 +53,8 @@ func CycleC[T any](iter <-chan T) chan T {
 	return c
 }
 
+// Repeat repeats the argument value.
+// The output channel will be finite if n > 0 and infinite if n == 0.
 func Repeat[T any](v T, n int) chan T {
 	c := make(chan T)
 	go func() {

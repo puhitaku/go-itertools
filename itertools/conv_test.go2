@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// ToChanRandom is an alternative to ToChan that randomizes durations between sends.
 func ToChanRandom[T any](s []T) <-chan T {
 	c := make(chan T)
 
