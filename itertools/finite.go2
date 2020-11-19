@@ -471,7 +471,7 @@ func TeeC[T any](seq <-chan T, n int) []<-chan T {
 // See also: Zip2
 func ZipLongest2[T1, T2 any](s1 []T1, s2 []T2, f1 T1, f2 T2) []Tuple2[T1, T2] {
 	var s []Tuple2[T1, T2]
-	l := Max(len(s1), len(s2))
+	l := Max([]int{len(s1), len(s2)})
 
 	for i := 0; i < l; i++ {
 		var v1 T1
@@ -506,7 +506,7 @@ func ZipLongest2C[T1, T2 any](it1 <-chan T1, it2 <-chan T2, f1 T1, f2 T2) chan T
 // See also: Zip3
 func ZipLongest3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3, f1 T1, f2 T2, f3 T3) []Tuple3[T1, T2, T3] {
 	var s []Tuple3[T1, T2, T3]
-	l := Max(len(s1), len(s2), len(s3))
+	l := Max([]int{len(s1), len(s2), len(s3)})
 
 	for i := 0; i < l; i++ {
 		var v1 T1
@@ -544,7 +544,7 @@ func ZipLongest3C[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3, f
 
 func ZipLongest4[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4, f1 T1, f2 T2, f3 T3, f4 T4) []Tuple4[T1, T2, T3, T4] {
 	var s []Tuple4[T1, T2, T3, T4]
-	l := Max(len(s1), len(s2), len(s3), len(s4))
+	l := Max([]int{len(s1), len(s2), len(s3), len(s4)})
 
 	for i := 0; i < l; i++ {
 		var v1 T1

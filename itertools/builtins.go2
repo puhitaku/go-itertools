@@ -127,9 +127,13 @@ func copyS[T any](it []T) []T {
 	return tmp
 }
 
-// Min returns the minimum value of the arguments.
+// Min returns the minimum value in the slice.
 // Built-in types that supports comparison operators (<, >) are only supported.
-func Min[T Ordered](it ...T) T {
+func Min[T Ordered](it []T) T {
+	if len(it) < 1 {
+		panic("the arg is an empty sequence")
+	}
+
 	min := it[0]
 	it = it[1:]
 
@@ -142,10 +146,13 @@ func Min[T Ordered](it ...T) T {
 	return min
 }
 
-// MinC returns the minimum value from the channel.
-// It'll return nil if no value is received.
+// MinC returns the minimum value received from the channel.
 // Built-in types that supports comparison operators (<, >) are only supported.
-func MinFromIterableC[T Ordered](it <-chan T) *T {
+//
+// It'll return nil if no value is received and does not panic because the
+// behavior of channel is unpredictable. We can finally decide if the channel
+// received any value or not when it's closed.
+func MinC[T Ordered](it <-chan T) *T {
 	var recv bool
 	var min T
 
@@ -163,28 +170,13 @@ func MinFromIterableC[T Ordered](it <-chan T) *T {
 	}
 }
 
-// MinFromIterable is an alternative of Min that inputs a slice.
+// Max returns the maximum value in the slice.
 // Built-in types that supports comparison operators (<, >) are only supported.
-func MinFromIterable[T Ordered](it []T) T {
-	if len(it) < 1 {
+func Max[T Ordered](it []T) T {
+	if len(it) == 0 {
 		panic("the arg is an empty sequence")
 	}
 
-	min := it[0]
-	it = it[1:]
-
-	for i := range it {
-		if min > it[i] {
-			min = it[i]
-		}
-	}
-
-	return min
-}
-
-// Max returns the maximum value of the arguments.
-// Built-in types that supports comparison operators (<, >) are only supported.
-func Max[T Ordered](it ...T) T {
 	max := it[0]
 	it = it[1:]
 
@@ -197,10 +189,13 @@ func Max[T Ordered](it ...T) T {
 	return max
 }
 
-// MaxC returns the maximum value from the channel.
-// It'll return nil if no value is received.
+// MaxC returns the maximum value received from the channel.
 // Built-in types that supports comparison operators (<, >) are only supported.
-func MaxFromIterableC[T Ordered](it <-chan T) *T {
+//
+// It'll return nil if no value is received and does not panic because the
+// behavior of channel is unpredictable. We can finally decide if the channel
+// received any value or not when it's closed.
+func MaxC[T Ordered](it <-chan T) *T {
 	var recv bool
 	var max T
 
@@ -216,25 +211,6 @@ func MaxFromIterableC[T Ordered](it <-chan T) *T {
 	} else {
 		return nil
 	}
-}
-
-// MaxFromIterable is an alternative of Max that inputs a slice.
-// Built-in types that supports comparison operators (<, >) are only supported.
-func MaxFromIterable[T Ordered](it []T) T {
-	if len(it) == 0 {
-		panic("the arg is an empty sequence")
-	}
-
-	max := it[0]
-	it = it[1:]
-
-	for i := range it {
-		if max < it[i] {
-			max = it[i]
-		}
-	}
-
-	return max
 }
 
 // Range generates a slice of discrete integers that is defined by "start", "stop", and "step".
@@ -401,7 +377,7 @@ func SumIfaceC[T AddableIface[T]](it <-chan T) T {
 // See also: ZipLongest2
 func Zip2[T1, T2 any](it1 []T1, it2 []T2) []Tuple2[T1, T2] {
 	var s []Tuple2[T1, T2]
-	l := Min(len(it1), len(it2))
+	l := Min([]int{len(it1), len(it2)})
 
 	for i := 0; i < l; i++ {
 		s = append(s, Tuple2[T1, T2]{V1: it1[i], V2: it2[i]})
@@ -477,7 +453,7 @@ func Zip2C[T1, T2 any](it1 <-chan T1, it2 <-chan T2) chan Tuple2[T1, T2] {
 // See also: ZipLongest3
 func Zip3[T1, T2, T3 any](it1 []T1, it2 []T2, it3 []T3) []Tuple3[T1, T2, T3] {
 	var s []Tuple3[T1, T2, T3]
-	l := Min(len(it1), len(it2), len(it3))
+	l := Min([]int{len(it1), len(it2), len(it3)})
 
 	for i := 0; i < l; i++ {
 		s = append(s, Tuple3[T1, T2, T3]{V1: it1[i], V2: it2[i], V3: it3[i]})
@@ -607,7 +583,7 @@ func Zip3C[T1, T2, T3 any](it1 <-chan T1, it2 <-chan T2, it3 <-chan T3) chan Tup
 // See also: ZipLongest4
 func Zip4[T1, T2, T3, T4 any](it1 []T1, it2 []T2, it3 []T3, it4 []T4) []Tuple4[T1, T2, T3, T4] {
 	var s []Tuple4[T1, T2, T3, T4]
-	l := Min(len(it1), len(it2), len(it3), len(it4))
+	l := Min([]int{len(it1), len(it2), len(it3), len(it4)})
 
 	for i := 0; i < l; i++ {
 		s = append(s, Tuple4[T1, T2, T3, T4]{V1: it1[i], V2: it2[i], V3: it3[i], V4: it4[i]})

@@ -129,58 +129,46 @@ func testMap(t *testing.T) {
 func testMin(t *testing.T) {
 	s := []int{1, 2, -1, 999, -4, 0}
 
-	output := itertools.Min(s...)
+	output := itertools.Min(s)
 	expect := -4
 
 	if output != expect {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
-	outputc := itertools.MinFromIterableC(itertools.C([]int{}))
+	outputc := itertools.MinC(itertools.C([]int{}))
 
 	if outputc != nil {
 		t.Fatalf("the result did not match with the expected slice: expect=(nil), actual=%v", outputc)
 	}
 
-	outputc = itertools.MinFromIterableC(itertools.C(s))
+	outputc = itertools.MinC(itertools.C(s))
 
 	if *outputc != expect {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, *outputc)
-	}
-
-	output = itertools.MinFromIterable(s)
-
-	if output != expect {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 }
 
 func testMax(t *testing.T) {
 	s := []int{1, 2, -1, 999, -4, 0}
 
-	output := itertools.Max(s...)
+	output := itertools.Max(s)
 	expect := 999
 
 	if output != expect {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
-	outputc := itertools.MaxFromIterableC(itertools.C([]int{}))
+	outputc := itertools.MaxC(itertools.C([]int{}))
 
 	if outputc != nil {
 		t.Fatalf("the result did not match with the expected slice: expect=(nil), actual=%v", outputc)
 	}
 
-	outputc = itertools.MaxFromIterableC(itertools.C(s))
+	outputc = itertools.MaxC(itertools.C(s))
 
 	if *outputc != expect {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, *outputc)
-	}
-
-	output = itertools.MaxFromIterable(s)
-
-	if output != expect {
-		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 }
 
