@@ -1,57 +1,101 @@
 package itertools
 
-func Product2[T1, T2 any](s1 []T1, s2 []T2) chan Tuple2[T1, T2] {
+func Product2[T1, T2 any](s1 []T1, s2 []T2) []Tuple2[T1, T2] {
+	var s []Tuple2[T1, T2]
+
+	for i1 := range s1 {
+		for i2 := range s2 {
+			s = append(s, Tuple2[T1, T2]{V1: s1[i1], V2: s2[i2]})
+		}
+	}
+
+	return s
+}
+
+func Product2C[T1, T2 any](c1 <-chan T1, c2 <-chan T2) <-chan Tuple2[T1, T2] {
+	// TODO: replace with more efficient and realtime algorithm
 	c := make(chan Tuple2[T1, T2])
 
 	go func() {
-		for i1 := range s1 {
-			for i2 := range s2 {
-				c <- Tuple2[T1, T2]{V1: s1[i1], V2: s2[i2]}
-			}
+		defer close(c)
+
+		s1, s2 := ToSlice(c1), ToSlice(c2)
+		for _, t := range Product2(s1, s2) {
+			c <- t
 		}
-		close(c)
 	}()
 
 	return c
 }
 
-func Product3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3) chan Tuple3[T1, T2, T3] {
+func Product3[T1, T2, T3 any](s1 []T1, s2 []T2, s3 []T3) []Tuple3[T1, T2, T3] {
+	var s []Tuple3[T1, T2, T3]
+
+	for i1 := range s1 {
+		for i2 := range s2 {
+			for i3 := range s3 {
+				s = append(s, Tuple3[T1, T2, T3]{V1: s1[i1], V2: s2[i2], V3: s3[i3]})
+			}
+		}
+	}
+
+	return s
+}
+
+func Product3C[T1, T2, T3 any](c1 <-chan T1, c2 <-chan T2, c3 <-chan T3) <-chan Tuple3[T1, T2, T3] {
+	// TODO: replace with more efficient and realtime algorithm
 	c := make(chan Tuple3[T1, T2, T3])
 
 	go func() {
-		for i1 := range s1 {
-			for i2 := range s2 {
-				for i3 := range s3 {
-					c <- Tuple3[T1, T2, T3]{V1: s1[i1], V2: s2[i2], V3: s3[i3]}
-				}
-			}
+		defer close(c)
+
+		s1, s2, s3 := ToSlice(c1), ToSlice(c2), ToSlice(c3)
+		for _, t := range Product3(s1, s2, s3) {
+			c <- t
 		}
-		close(c)
 	}()
 
 	return c
 }
 
-func Product4[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4) chan Tuple4[T1, T2, T3, T4] {
+func Product4[T1, T2, T3, T4 any](s1 []T1, s2 []T2, s3 []T3, s4 []T4) []Tuple4[T1, T2, T3, T4] {
+	var s []Tuple4[T1, T2, T3, T4]
+
+	for i1 := range s1 {
+		for i2 := range s2 {
+			for i3 := range s3 {
+				for i4 := range s4 {
+					s = append(s, Tuple4[T1, T2, T3, T4]{V1: s1[i1], V2: s2[i2], V3: s3[i3], V4: s4[i4]})
+				}
+			}
+		}
+	}
+
+	return s
+}
+
+func Product4C[T1, T2, T3, T4 any](c1 <-chan T1, c2 <-chan T2, c3 <-chan T3, c4 <-chan T4) <-chan Tuple4[T1, T2, T3, T4] {
+	// TODO: replace with more efficient and realtime algorithm
 	c := make(chan Tuple4[T1, T2, T3, T4])
 
 	go func() {
-		for i1 := range s1 {
-			for i2 := range s2 {
-				for i3 := range s3 {
-					for i4 := range s4 {
-						c <- Tuple4[T1, T2, T3, T4]{V1: s1[i1], V2: s2[i2], V3: s3[i3], V4: s4[i4]}
-					}
-				}
-			}
+		defer close(c)
+
+		s1, s2, s3, s4 := ToSlice(c1), ToSlice(c2), ToSlice(c3), ToSlice(c4)
+		for _, t := range Product4(s1, s2, s3, s4) {
+			c <- t
 		}
-		close(c)
 	}()
 
 	return c
 }
 
-func Permutations[T any](iter []T, r int) chan []T {
+func Permutations[T any](iter []T, r int) [][]T {
+	return ToSlice(PermutationsC(ToChan(iter), r))
+}
+
+func PermutationsC[T any](iterC <-chan T, r int) chan []T {
+	iter := ToSlice(iterC)
 	c := make(chan []T)
 	var indices []int
 
@@ -118,7 +162,12 @@ outer:
 	return c
 }
 
-func Combinations[T any](iter []T, r int) chan []T {
+func Combinations[T any](iter []T, r int) [][]T {
+	return ToSlice(CombinationsC(ToChan(iter), r))
+}
+
+func CombinationsC[T any](iterC <-chan T, r int) chan []T {
+	iter := ToSlice(iterC)
 	c := make(chan []T)
 	var indices []int
 
@@ -168,7 +217,11 @@ func Combinations[T any](iter []T, r int) chan []T {
 	return c
 }
 
-func CombinationsWithReplacement[T any](iter []T, r int) chan []T {
+func CombinationsWithReplacement[T any](iter []T, r int) [][]T {
+	return ToSlice(CombinationsWithReplacementC(iter, r))
+}
+
+func CombinationsWithReplacementC[T any](iter []T, r int) chan []T {
 	c := make(chan []T)
 	var indices []int
 

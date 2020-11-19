@@ -22,7 +22,7 @@ func testProduct(t *testing.T) {
 	expect := []string{"Ax", "Ay", "Bx", "By"}
 	output := []string{}
 
-	for t := range p2 {
+	for _, t := range p2 {
 		output = append(output, string(t.V1) + string(t.V2))
 	}
 
@@ -35,7 +35,7 @@ func testProduct(t *testing.T) {
 	expect = []string{"Ax1", "Ax2", "Ay1", "Ay2", "Bx1", "Bx2", "By1", "By2"}
 	output = []string{}
 
-	for t := range p3 {
+	for _, t := range p3 {
 		output = append(output, string(t.V1) + string(t.V2) + string(t.V3))
 	}
 
@@ -51,7 +51,49 @@ func testProduct(t *testing.T) {
 	}
 	output = []string{}
 
-	for t := range p4 {
+	for _, t := range p4 {
+		output = append(output, string(t.V1) + string(t.V2) + string(t.V3) + string(t.V4))
+	}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	// Product2C
+	p2c := itertools.Product2C(itertools.ToChan(s1), itertools.ToChan(s2))
+	expect = []string{"Ax", "Ay", "Bx", "By"}
+	output = []string{}
+
+	for t := range p2c {
+		output = append(output, string(t.V1) + string(t.V2))
+	}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	// Product3C
+	p3c := itertools.Product3C(itertools.ToChan(s1), itertools.ToChan(s2), itertools.ToChan(s3))
+	expect = []string{"Ax1", "Ax2", "Ay1", "Ay2", "Bx1", "Bx2", "By1", "By2"}
+	output = []string{}
+
+	for t := range p3c {
+		output = append(output, string(t.V1) + string(t.V2) + string(t.V3))
+	}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	// Product4C
+	p4c := itertools.Product4C(itertools.ToChan(s1), itertools.ToChan(s2), itertools.ToChan(s3), itertools.ToChan(s4))
+	expect = []string{
+		"Ax1!", "Ax1?", "Ax2!", "Ax2?", "Ay1!", "Ay1?", "Ay2!", "Ay2?",
+		"Bx1!", "Bx1?", "Bx2!", "Bx2?", "By1!", "By1?", "By2!", "By2?",
+	}
+	output = []string{}
+
+	for t := range p4c {
 		output = append(output, string(t.V1) + string(t.V2) + string(t.V3) + string(t.V4))
 	}
 
@@ -66,7 +108,7 @@ func testPermutations(t *testing.T) {
 	expect := []string{"AB", "AC", "AD", "BA", "BC", "BD", "CA", "CB", "CD", "DA", "DB", "DC"}
 	output := []string{}
 
-	for v := range it1 {
+	for _, v := range it1 {
 		output = append(output, string(v))
 	}
 
@@ -78,7 +120,31 @@ func testPermutations(t *testing.T) {
 	expect = []string{"012", "021", "102", "120", "201", "210"}
 	output = []string{}
 
-	for v := range it2 {
+	for _, v := range it2 {
+		output = append(output, string(v))
+	}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	it1 = itertools.ToSlice(itertools.PermutationsC(itertools.ToChan(s1), 2))
+	expect = []string{"AB", "AC", "AD", "BA", "BC", "BD", "CA", "CB", "CD", "DA", "DB", "DC"}
+	output = []string{}
+
+	for _, v := range it1 {
+		output = append(output, string(v))
+	}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	it2 = itertools.ToSlice(itertools.PermutationsC(itertools.ToChan(s2), 0))
+	expect = []string{"012", "021", "102", "120", "201", "210"}
+	output = []string{}
+
+	for _, v := range it2 {
 		output = append(output, string(v))
 	}
 
@@ -93,7 +159,7 @@ func testCombinations(t *testing.T) {
 	expect := []string{"AB", "AC", "AD", "BC", "BD", "CD"}
 	output := []string{}
 
-	for v := range it1 {
+	for _, v := range it1 {
 		output = append(output, string(v))
 	}
 
@@ -105,7 +171,31 @@ func testCombinations(t *testing.T) {
 	expect = []string{"012", "013", "023", "123"}
 	output = []string{}
 
-	for v := range it2 {
+	for _, v := range it2 {
+		output = append(output, string(v))
+	}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	it1 = itertools.ToSlice(itertools.CombinationsC(itertools.ToChan(s1), 2))
+	expect = []string{"AB", "AC", "AD", "BC", "BD", "CD"}
+	output = []string{}
+
+	for _, v := range it1 {
+		output = append(output, string(v))
+	}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	it2 = itertools.ToSlice(itertools.CombinationsC(itertools.ToChan(s2), 3))
+	expect = []string{"012", "013", "023", "123"}
+	output = []string{}
+
+	for _, v := range it2 {
 		output = append(output, string(v))
 	}
 
@@ -120,7 +210,18 @@ func testCombinationsWithReplacement(t *testing.T) {
 	expect := []string{"AA", "AB", "AC", "BB", "BC", "CC"}
 	output := []string{}
 
-	for v := range it1 {
+	for _, v := range it1 {
+		output = append(output, string(v))
+	}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	it2 := itertools.CombinationsWithReplacementC(s1, 2)
+	output = []string{}
+
+	for v := range it2 {
 		output = append(output, string(v))
 	}
 
