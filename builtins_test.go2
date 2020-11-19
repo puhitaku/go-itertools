@@ -136,7 +136,19 @@ func testMin(t *testing.T) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
-	output = itertools.MinS(s)
+	outputc := itertools.MinC(itertools.C([]int{}))
+
+	if outputc != nil {
+		t.Fatalf("the result did not match with the expected slice: expect=(nil), actual=%v", outputc)
+	}
+
+	outputc = itertools.MinC(itertools.C(s))
+
+	if *outputc != expect {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, *outputc)
+	}
+
+	output = itertools.MinFromIterable(s)
 
 	if output != expect {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
@@ -153,7 +165,19 @@ func testMax(t *testing.T) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
-	output = itertools.MaxS(s)
+	outputc := itertools.MaxC(itertools.C([]int{}))
+
+	if outputc != nil {
+		t.Fatalf("the result did not match with the expected slice: expect=(nil), actual=%v", outputc)
+	}
+
+	outputc = itertools.MaxC(itertools.C(s))
+
+	if *outputc != expect {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, *outputc)
+	}
+
+	output = itertools.MaxFromIterable(s)
 
 	if output != expect {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)

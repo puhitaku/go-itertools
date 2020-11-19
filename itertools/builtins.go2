@@ -142,9 +142,30 @@ func Min[T Ordered](it ...T) T {
 	return min
 }
 
-// MinS is an alternative of Min that inputs a slice.
+// MinC returns the minimum value from the channel.
+// It'll return nil if no value is received.
 // Built-in types that supports comparison operators (<, >) are only supported.
-func MinS[T Ordered](it []T) T {
+func MinC[T Ordered](it <-chan T) *T {
+	var recv bool
+	var min T
+
+	for v := range it {
+		if !recv || min > v {
+			min = v
+			recv = true
+		}
+	}
+
+	if recv {
+		return &min
+	} else {
+		return nil
+	}
+}
+
+// MinFromIterable is an alternative of Min that inputs a slice.
+// Built-in types that supports comparison operators (<, >) are only supported.
+func MinFromIterable[T Ordered](it []T) T {
 	if len(it) < 1 {
 		panic("the arg is an empty sequence")
 	}
@@ -176,9 +197,30 @@ func Max[T Ordered](it ...T) T {
 	return max
 }
 
-// MaxS is an alternative of Max that inputs a slice.
+// MaxC returns the maximum value from the channel.
+// It'll return nil if no value is received.
 // Built-in types that supports comparison operators (<, >) are only supported.
-func MaxS[T Ordered](it []T) T {
+func MaxC[T Ordered](it <-chan T) *T {
+	var recv bool
+	var max T
+
+	for v := range it {
+		if !recv || max < v {
+			max = v
+			recv = true
+		}
+	}
+
+	if recv {
+		return &max
+	} else {
+		return nil
+	}
+}
+
+// MaxFromIterable is an alternative of Max that inputs a slice.
+// Built-in types that supports comparison operators (<, >) are only supported.
+func MaxFromIterable[T Ordered](it []T) T {
 	if len(it) == 0 {
 		panic("the arg is an empty sequence")
 	}
