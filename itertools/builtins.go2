@@ -145,7 +145,7 @@ func Min[T Ordered](it ...T) T {
 // MinC returns the minimum value from the channel.
 // It'll return nil if no value is received.
 // Built-in types that supports comparison operators (<, >) are only supported.
-func MinC[T Ordered](it <-chan T) *T {
+func MinFromIterableC[T Ordered](it <-chan T) *T {
 	var recv bool
 	var min T
 
@@ -200,7 +200,7 @@ func Max[T Ordered](it ...T) T {
 // MaxC returns the maximum value from the channel.
 // It'll return nil if no value is received.
 // Built-in types that supports comparison operators (<, >) are only supported.
-func MaxC[T Ordered](it <-chan T) *T {
+func MaxFromIterableC[T Ordered](it <-chan T) *T {
 	var recv bool
 	var max T
 
