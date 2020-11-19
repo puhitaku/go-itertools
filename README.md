@@ -65,5 +65,7 @@ A port of Python itertools, functools, built-ins, and more-itertools for Go 2 wi
 ||Zip4|Zip4C|
 
 <a name="builtins1">1</a>: Enumeration of slice is useless as Go natively supports it
+
 <a name="builtins2">2</a>: Inputs multiple arguments
+
 <a name="builtins3">3</a>: Inputs a slice
