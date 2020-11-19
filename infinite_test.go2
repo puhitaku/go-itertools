@@ -40,7 +40,7 @@ func testCycle(t *testing.T) {
 		t.Fatal("the result did not match with the expected slice")
 	}
 
-	it2 := itertools.CycleC(itertools.ToChan([]int{1, 2, 3}))
+	it2 := itertools.CycleC(itertools.C([]int{1, 2, 3}))
 	output = []int{}
 
 	for i := 0; i < 7; i++ {

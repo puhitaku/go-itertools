@@ -8,11 +8,11 @@ import (
 )
 
 func TestConv(t *testing.T) {
-	t.Run("ToSlice", testToSlice)
-	t.Run("ToChan", testToChan)
+	t.Run("S", testS)
+	t.Run("C", testC)
 }
 
-func testToSlice(t *testing.T) {
+func testS(t *testing.T) {
 	c := make(chan int)
 	go func() {
 		for i := 0; i < 5; i++ {
@@ -21,7 +21,7 @@ func testToSlice(t *testing.T) {
 		close(c)
 	}()
 
-	output := itertools.ToSlice(c)
+	output := itertools.S(c)
 	expect := []int{0, 1, 2, 3, 4}
 
 	if !reflect.DeepEqual(output, expect) {
@@ -29,10 +29,10 @@ func testToSlice(t *testing.T) {
 	}
 }
 
-func testToChan(t *testing.T) {
+func testC(t *testing.T) {
 	output := []int{}
 	expect := []int{0, 1, 2, 3, 4}
-	for v := range itertools.ToChan([]int{0, 1, 2, 3, 4}) {
+	for v := range itertools.C([]int{0, 1, 2, 3, 4}) {
 		output = append(output, v)
 	}
 

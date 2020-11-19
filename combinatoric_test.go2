@@ -60,7 +60,7 @@ func testProduct(t *testing.T) {
 	}
 
 	// Product2C
-	p2c := itertools.Product2C(itertools.ToChan(s1), itertools.ToChan(s2))
+	p2c := itertools.Product2C(itertools.C(s1), itertools.C(s2))
 	expect = []string{"Ax", "Ay", "Bx", "By"}
 	output = []string{}
 
@@ -73,7 +73,7 @@ func testProduct(t *testing.T) {
 	}
 
 	// Product3C
-	p3c := itertools.Product3C(itertools.ToChan(s1), itertools.ToChan(s2), itertools.ToChan(s3))
+	p3c := itertools.Product3C(itertools.C(s1), itertools.C(s2), itertools.C(s3))
 	expect = []string{"Ax1", "Ax2", "Ay1", "Ay2", "Bx1", "Bx2", "By1", "By2"}
 	output = []string{}
 
@@ -86,7 +86,7 @@ func testProduct(t *testing.T) {
 	}
 
 	// Product4C
-	p4c := itertools.Product4C(itertools.ToChan(s1), itertools.ToChan(s2), itertools.ToChan(s3), itertools.ToChan(s4))
+	p4c := itertools.Product4C(itertools.C(s1), itertools.C(s2), itertools.C(s3), itertools.C(s4))
 	expect = []string{
 		"Ax1!", "Ax1?", "Ax2!", "Ax2?", "Ay1!", "Ay1?", "Ay2!", "Ay2?",
 		"Bx1!", "Bx1?", "Bx2!", "Bx2?", "By1!", "By1?", "By2!", "By2?",
@@ -128,7 +128,7 @@ func testPermutations(t *testing.T) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
-	it1 = itertools.ToSlice(itertools.PermutationsC(itertools.ToChan(s1), 2))
+	it1 = itertools.S(itertools.PermutationsC(itertools.C(s1), 2))
 	expect = []string{"AB", "AC", "AD", "BA", "BC", "BD", "CA", "CB", "CD", "DA", "DB", "DC"}
 	output = []string{}
 
@@ -140,7 +140,7 @@ func testPermutations(t *testing.T) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
-	it2 = itertools.ToSlice(itertools.PermutationsC(itertools.ToChan(s2), 0))
+	it2 = itertools.S(itertools.PermutationsC(itertools.C(s2), 0))
 	expect = []string{"012", "021", "102", "120", "201", "210"}
 	output = []string{}
 
@@ -179,7 +179,7 @@ func testCombinations(t *testing.T) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
-	it1 = itertools.ToSlice(itertools.CombinationsC(itertools.ToChan(s1), 2))
+	it1 = itertools.S(itertools.CombinationsC(itertools.C(s1), 2))
 	expect = []string{"AB", "AC", "AD", "BC", "BD", "CD"}
 	output = []string{}
 
@@ -191,7 +191,7 @@ func testCombinations(t *testing.T) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
-	it2 = itertools.ToSlice(itertools.CombinationsC(itertools.ToChan(s2), 3))
+	it2 = itertools.S(itertools.CombinationsC(itertools.C(s2), 3))
 	expect = []string{"012", "013", "023", "123"}
 	output = []string{}
 

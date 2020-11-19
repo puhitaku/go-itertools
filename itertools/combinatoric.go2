@@ -23,7 +23,7 @@ func Product2C[T1, T2 any](c1 <-chan T1, c2 <-chan T2) <-chan Tuple2[T1, T2] {
 	go func() {
 		defer close(c)
 
-		s1, s2 := ToSlice(c1), ToSlice(c2)
+		s1, s2 := S(c1), S(c2)
 		for _, t := range Product2(s1, s2) {
 			c <- t
 		}
@@ -57,7 +57,7 @@ func Product3C[T1, T2, T3 any](c1 <-chan T1, c2 <-chan T2, c3 <-chan T3) <-chan 
 	go func() {
 		defer close(c)
 
-		s1, s2, s3 := ToSlice(c1), ToSlice(c2), ToSlice(c3)
+		s1, s2, s3 := S(c1), S(c2), S(c3)
 		for _, t := range Product3(s1, s2, s3) {
 			c <- t
 		}
@@ -93,7 +93,7 @@ func Product4C[T1, T2, T3, T4 any](c1 <-chan T1, c2 <-chan T2, c3 <-chan T3, c4 
 	go func() {
 		defer close(c)
 
-		s1, s2, s3, s4 := ToSlice(c1), ToSlice(c2), ToSlice(c3), ToSlice(c4)
+		s1, s2, s3, s4 := S(c1), S(c2), S(c3), S(c4)
 		for _, t := range Product4(s1, s2, s3, s4) {
 			c <- t
 		}
@@ -104,13 +104,13 @@ func Product4C[T1, T2, T3, T4 any](c1 <-chan T1, c2 <-chan T2, c3 <-chan T3, c4 
 
 // Permutations generates permutations of the slice.
 func Permutations[T any](iter []T, r int) [][]T {
-	return ToSlice(PermutationsC(ToChan(iter), r))
+	return S(PermutationsC(C(iter), r))
 }
 
 // PermutationsC is an alternative to Permutations that inputs/outputs channels.
 // The output is not synchronized to the input.
 func PermutationsC[T any](iterC <-chan T, r int) chan []T {
-	iter := ToSlice(iterC)
+	iter := S(iterC)
 	c := make(chan []T)
 	var indices []int
 
@@ -179,13 +179,13 @@ outer:
 
 // Combinations generates combinations of the slice.
 func Combinations[T any](iter []T, r int) [][]T {
-	return ToSlice(CombinationsC(ToChan(iter), r))
+	return S(CombinationsC(C(iter), r))
 }
 
 // CombinationsC is an alternative to Combinations that inputs/outputs channels.
 // The output is not synchronized to the input.
 func CombinationsC[T any](iterC <-chan T, r int) chan []T {
-	iter := ToSlice(iterC)
+	iter := S(iterC)
 	c := make(chan []T)
 	var indices []int
 
@@ -237,7 +237,7 @@ func CombinationsC[T any](iterC <-chan T, r int) chan []T {
 
 // CombinationsWithReplacement generates combinations that contains repeated values.
 func CombinationsWithReplacement[T any](iter []T, r int) [][]T {
-	return ToSlice(CombinationsWithReplacementC(iter, r))
+	return S(CombinationsWithReplacementC(iter, r))
 }
 
 // CombinationsWithReplacementC is an alternative to CombinationsWithReplacement that inputs/outputs channels.

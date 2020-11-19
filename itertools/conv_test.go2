@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// ToChanRandom is an alternative to ToChan that randomizes durations between sends.
-func ToChanRandom[T any](s []T) <-chan T {
+// CRandom is an alternative to C that randomizes durations between sends.
+func CRandom[T any](s []T) <-chan T {
 	c := make(chan T)
 
 	go func(){

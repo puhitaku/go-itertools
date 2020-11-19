@@ -1,7 +1,7 @@
 package itertools
 
-// ToSlice converts the channel to a slice.
-func ToSlice[T any](c <-chan T) []T {
+// S converts the channel to a slice.
+func S[T any](c <-chan T) []T {
 	var s []T
 	for v := range c {
 		s = append(s, v)
@@ -9,8 +9,8 @@ func ToSlice[T any](c <-chan T) []T {
 	return s
 }
 
-// ToChan converts the slice to a channel.
-func ToChan[T any](s []T) <-chan T {
+// C converts the slice to a channel.
+func C[T any](s []T) <-chan T {
 	c := make(chan T)
 
 	go func(){
