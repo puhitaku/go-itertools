@@ -10,7 +10,6 @@ import (
 func TestInfinite(t *testing.T) {
 	t.Run("Count", testCount)
 	t.Run("Cycle", testCycle)
-	t.Run("CycleS", testCycleS)
 	t.Run("Repeat", testRepeat)
 }
 
@@ -29,26 +28,23 @@ func testCount(t *testing.T) {
 }
 
 func testCycle(t *testing.T) {
-	it := itertools.Cycle(itertools.ToChan([]int{1, 2, 3}))
+	it1 := itertools.Cycle([]int{1, 2, 3})
 	expect := []int{1, 2, 3, 1, 2, 3, 1}
 	output := []int{}
 
 	for i := 0; i < 7; i++ {
-		output = append(output, <-it)
+		output = append(output, <-it1)
 	}
 
 	if !reflect.DeepEqual(output, expect) {
 		t.Fatal("the result did not match with the expected slice")
 	}
-}
 
-func testCycleS(t *testing.T) {
-	it := itertools.CycleS([]int{1, 2, 3})
-	expect := []int{1, 2, 3, 1, 2, 3, 1}
-	output := []int{}
+	it2 := itertools.CycleC(itertools.ToChan([]int{1, 2, 3}))
+	output = []int{}
 
 	for i := 0; i < 7; i++ {
-		output = append(output, <-it)
+		output = append(output, <-it2)
 	}
 
 	if !reflect.DeepEqual(output, expect) {

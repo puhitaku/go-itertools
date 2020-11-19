@@ -16,7 +16,19 @@ func Count[T Incrementable](start T) chan T {
 	return c
 }
 
-func Cycle[T any](iter <-chan T) chan T {
+func Cycle[T any](iter []T) chan T {
+	c := make(chan T)
+	go func() {
+		for {
+			for _, v := range iter {
+				c <- v
+			}
+		}
+	}()
+	return c
+}
+
+func CycleC[T any](iter <-chan T) chan T {
 	c := make(chan T)
 	buf := []T{}
 
@@ -29,18 +41,6 @@ func Cycle[T any](iter <-chan T) chan T {
 		for {
 			for i := range buf {
 				c <- buf[i]
-			}
-		}
-	}()
-	return c
-}
-
-func CycleS[T any](iter []T) chan T {
-	c := make(chan T)
-	go func() {
-		for {
-			for _, v := range iter {
-				c <- v
 			}
 		}
 	}()
