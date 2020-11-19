@@ -24,7 +24,7 @@ A port of Python itertools, functools, built-ins, and more-itertools for Go 2 wi
 |Python|Slice I/O|Channel I/O|
 |:--|:--|:--|
 |itertools.accumulate|Accumulate|AccumulateC|
-|↑|AccumulateIface|AccumulateIfaceC|
+||AccumulateIface|AccumulateIfaceC|
 |itertools.chain|Chain|ChainC|
 |itertools.chain.from_iterable|ChainFromIterable|ChainFromIterableC|
 |itertools.compress|Compress|CompressC|
@@ -32,12 +32,12 @@ A port of Python itertools, functools, built-ins, and more-itertools for Go 2 wi
 |itertools.takewhile|TakeWhile|TakeWhileC|
 |itertools.filterfalse|FilterFalse|FilterFalseC|
 |itertools.groupby|GroupBy|GroupByC|
-|↑|GroupByIface|GroupByIfaceC|
+||GroupByIface|GroupByIfaceC|
 |itertools.islice|ISlice|ISliceC|
 |itertools.tee|Tee|TeeC|
 |itertools.zip_longest|ZipLongest2|ZipLongest2C|
-|↑|ZipLongest3|ZipLongest3C|
-|↑|ZipLongest4|ZipLongest4C|
+||ZipLongest3|ZipLongest3C|
+||ZipLongest4|ZipLongest4C|
 
 (Note: StarMap is not ported as its original concept is not applicable to Go.)
 
@@ -52,17 +52,17 @@ A port of Python itertools, functools, built-ins, and more-itertools for Go 2 wi
 |filter|Filter|FilterC|
 |map|Map|MapC|
 |min|Min<sup>[2](#builtins2)</sup>||
-|↑|MinS<sup>[3](#builtins3)</sup>||
+||MinS<sup>[3](#builtins3)</sup>||
 |max|Max<sup>[2](#builtins2)</sup>||
-|↑|MaxS<sup>[3](#builtins3)</sup>||
+||MaxS<sup>[3](#builtins3)</sup>||
 |range|Range|RangeC|
 |reversed|Reversed|ReversedC|
 |sorted|Sorted|SortedC|
 |sum|Sum|SumC|
-|↑|SumIface|SumIfaceC|
+||SumIface|SumIfaceC|
 |zip|Zip2|Zip2C|
-|↑|Zip3|Zip3C|
-|↑|Zip4|Zip4C|
+||Zip3|Zip3C|
+||Zip4|Zip4C|
 
 <a name="builtins1">1</a>: Enumeration of slice is useless as Go natively supports it
 <a name="builtins2">2</a>: Inputs multiple arguments
