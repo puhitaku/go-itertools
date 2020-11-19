@@ -51,10 +51,10 @@ A port of Python itertools, functools, built-ins, and more-itertools for Go 2 wi
 |enumerate|<sup>[1](#builtins1)</sup>|EnumerateC|
 |filter|Filter|FilterC|
 |map|Map|MapC|
-|min|Min<sup>[2](#builtins2)</sup>||
-||MinS<sup>[3](#builtins3)</sup>||
-|max|Max<sup>[2](#builtins2)</sup>||
-||MaxS<sup>[3](#builtins3)</sup>||
+|min|Min<sup>[2](#builtins2)</sup>|MinC|
+||MinFromIterable<sup>[3](#builtins3)</sup>||
+|max|Max<sup>[2](#builtins2)</sup>|MaxC|
+||MaxFromIterable<sup>[3](#builtins3)</sup>||
 |range|Range|RangeC|
 |reversed|Reversed|ReversedC|
 |sorted|Sorted|SortedC|
