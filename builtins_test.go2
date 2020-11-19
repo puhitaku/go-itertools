@@ -54,12 +54,24 @@ func testAll(t *testing.T) {
 	if !reflect.DeepEqual(output, expect) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
+
+	output = []bool{itertools.AllC(itertools.C(s1)), itertools.AllC(itertools.C(s2)), itertools.AllC(itertools.C(s3))}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
 }
 
 func testAny(t *testing.T) {
 	s1, s2, s3 := []bool{true, true}, []bool{true, false}, []bool{false, false}
 	output := []bool{itertools.Any(s1), itertools.Any(s2), itertools.Any(s3)}
 	expect := []bool{true, true, false}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	output = []bool{itertools.AnyC(itertools.C(s1)), itertools.AnyC(itertools.C(s2)), itertools.AnyC(itertools.C(s3))}
 
 	if !reflect.DeepEqual(output, expect) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)

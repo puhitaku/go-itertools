@@ -46,8 +46,8 @@ A port of Python itertools, functools, built-ins, and more-itertools for Go 2 wi
 
 |Python|Slice I/O|Channel I/O|
 |:--|:--|:--|
-|all|All||
-|any|Any||
+|all|All|AllC|
+|any|Any|AnyC|
 |enumerate|<sup>[1](#builtins1)</sup>|EnumerateC|
 |filter|Filter|FilterC|
 |map|Map|MapC|

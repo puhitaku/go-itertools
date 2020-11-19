@@ -16,10 +16,30 @@ func All(it []bool) bool {
 	return true
 }
 
+// AllC returns if the channel receives only trues.
+func AllC(it <-chan bool) bool {
+	for v := range it {
+		if !v {
+			return false
+		}
+	}
+	return true
+}
+
 // Any returns if the slice has one or more trues.
 func Any(it []bool) bool {
 	for i := range it {
 		if it[i] {
+			return true
+		}
+	}
+	return false
+}
+
+// AnyC returns if the channel receives one or more trues.
+func AnyC(it <-chan bool) bool {
+	for v := range it {
+		if v {
 			return true
 		}
 	}
