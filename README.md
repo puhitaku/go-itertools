@@ -51,10 +51,8 @@ A port of Python itertools, functools, built-ins, and more-itertools for Go 2 wi
 |enumerate|<sup>[1](#builtins1)</sup>|EnumerateC|
 |filter|Filter|FilterC|
 |map|Map|MapC|
-|min|Min<sup>[2](#builtins2)</sup>||
-||MinFromIterable<sup>[3](#builtins3)</sup>|MinFromIterableC|
-|max|Max<sup>[2](#builtins2)</sup>||
-||MaxFromIterable<sup>[3](#builtins3)</sup>|MaxFromIterableC|
+|min|Min|MinC|
+|max|Max|MaxC|
 |range|Range|RangeC|
 |reversed|Reversed|ReversedC|
 |sorted|Sorted|SortedC|
@@ -65,7 +63,3 @@ A port of Python itertools, functools, built-ins, and more-itertools for Go 2 wi
 ||Zip4|Zip4C|
 
 <a name="builtins1">1</a>: Enumeration of slice is useless as Go natively supports it
-
-<a name="builtins2">2</a>: Inputs multiple arguments
-
-<a name="builtins3">3</a>: Inputs a slice
