@@ -1,0 +1,9 @@
+package itertools
+
+func (l *LRUCache[T, U]) GetAge() map[T]int {
+	return l.age
+}
+
+func (l *LRUCacheArbitrary[T, U]) GetAge() map[string]int {
+	return l.age
+}

@@ -1,0 +1,114 @@
+package itertools
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"hash"
+)
+
+type LRUCache[T Comparable, U any] struct {
+	fn func(T) U
+	cache map[T]U
+	age map[T]int
+	maxSize int
+}
+
+func NewLRUCache[T Comparable, U any](fn func(T) U, maxSize int) *LRUCache[T, U] {
+	return &LRUCache[T, U]{
+		fn: fn,
+		cache: map[T]U{},
+		age: map[T]int{},
+		maxSize: maxSize,
+	}
+}
+
+func (l *LRUCache[T, U]) Call(arg T) U {
+	var ret U
+
+	cv, ok := l.cache[arg]
+	if ok {
+		ret = cv
+	} else {
+		ret = l.fn(arg)
+		l.cache[arg] = ret
+	}
+
+	l.age[arg] = -1
+
+	for k := range l.age {
+		l.age[k] += 1
+	}
+
+	if len(l.age) > l.maxSize {
+		var mk T
+		var ma int
+
+		for k, age := range l.age {
+			if ma < age {
+				mk, ma = k, age
+			}
+		}
+
+		delete(l.cache, mk)
+		delete(l.age, mk)
+	}
+
+	return ret
+}
+
+type LRUCacheArbitrary[T, U any] struct {
+	fn func(T) U
+	cache map[string]U
+	age map[string]int
+	maxSize int
+
+	hasher hash.Hash
+}
+
+func NewLRUCacheArbitrary[T, U any](fn func(T) U, maxSize int) *LRUCacheArbitrary[T, U] {
+	return &LRUCacheArbitrary[T, U]{
+		fn: fn,
+		cache: map[string]U{},
+		age: map[string]int{},
+		maxSize: maxSize,
+		hasher: sha256.New(),
+	}
+}
+
+func (l *LRUCacheArbitrary[T, U]) Call(arg T) U {
+	var ret U
+	var sha = sha256.Sum256([]byte(fmt.Sprintf("%#v", arg)))
+	var hashed = hex.EncodeToString(sha[:])
+
+	cv, ok := l.cache[hashed]
+	if ok {
+		ret = cv
+	} else {
+		ret = l.fn(arg)
+		l.cache[hashed] = ret
+	}
+
+	l.age[hashed] = -1
+
+	for k := range l.age {
+		l.age[k] += 1
+	}
+
+	if len(l.age) > l.maxSize {
+		var mk string
+		var ma int
+
+		for k, age := range l.age {
+			if ma < age {
+				mk, ma = k, age
+			}
+		}
+
+		delete(l.cache, mk)
+		delete(l.age, mk)
+	}
+
+	return ret
+}
+
