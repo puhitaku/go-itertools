@@ -14,6 +14,7 @@ func TestFunctools(t *testing.T) {
 	t.Run("LRUComparable", testLRUComparable)
 	t.Run("LRUAny", testLRUAny)
 	t.Run("LRUHashable", testLRUHashable)
+	t.Run("Reduce", testReduce)
 }
 
 func testLRUComparable(t *testing.T) {
@@ -234,5 +235,22 @@ func testLRUHashable(t *testing.T) {
 	expectAge = map[string]int{oneh: 2, threeh: 0}
 	if !reflect.DeepEqual(expectAge, lru.GetAge()) {
 		t.Fatalf("unexpected cache state: expected=%v, actual=%v", expectAge, calls)
+	}
+}
+
+func testReduce(t *testing.T) {
+	fn := func(x, y int) int { return x + y }
+	input := []int{1, 2, 3, 4, 5}
+	output := itertools.Reduce(fn, input, 0)
+	expect := 15
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	output = itertools.ReduceC(fn, itertools.C(input), 0)
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 }

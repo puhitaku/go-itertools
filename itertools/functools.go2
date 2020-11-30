@@ -190,3 +190,27 @@ func (l *LRUHashable[T, U]) Call(arg Hashable[T]) U {
 
 	return ret
 }
+
+// Reduce applies the function cumulatively on the slice and reduces it into a single value.
+// It returns init if the slice has no element.
+func Reduce[T any](fn func(T, T) T, it []T, init T) T {
+	accum := init
+
+	for i := range it {
+		accum = fn(accum, it[i])
+	}
+
+	return accum
+}
+
+// ReduceC applies the function cumulatively on the channel and reduces it into a single value.
+// It returns init if no values are received from the channel.
+func ReduceC[T any](fn func(T, T) T, it <-chan T, init T) T {
+	accum := init
+
+	for v := range it {
+		accum = fn(accum, v)
+	}
+
+	return accum
+}
