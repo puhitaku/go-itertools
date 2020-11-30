@@ -5,7 +5,7 @@ A port of Python itertools, functools, built-ins, and more-itertools for Go 2 wi
 
 ### Remarks
 
-- Currently (2020/11/12), go2go does not recognize the suffix `*_test` in package name. This is why they belong to "main" package so far and are put in the root directory.
+- Currently (2020/11/30), go2go does not recognize the suffix `*_test` in package name. This is why they belong to "main" package so far.
 
 
 ### itertools: infinite iterators
@@ -40,6 +40,24 @@ A port of Python itertools, functools, built-ins, and more-itertools for Go 2 wi
 ||ZipLongest4|ZipLongest4C|
 
 (Note: StarMap is not ported as its original concept is not applicable to Go.)
+
+
+### functools
+
+#### LRU cache
+
+|Python|Golang|Remarks|
+|:--|:--|:--|
+|functools.lru_cache|WrapLRUAny|Wraps `func(T any) U`|
+|functools.lru_cache|WrapLRUComparable|Wraps `func(T itertools.Comparable) U`|
+|functools.lru_cache|WrapLRUHashable|Wraps `func(T itertools.Hashable[T]) U`|
+
+
+#### Reduce
+
+|Python|Slice I/O|Channel I/O|
+|:--|:--|:--|
+|functools.reduce|Reduce|ReduceC|
 
 
 ### Python built-ins
