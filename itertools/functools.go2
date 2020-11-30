@@ -156,7 +156,7 @@ func WrapLRUHashable[T Hashable[T], U any](fn func(T) U, maxSize int) *LRUHashab
 
 func (l *LRUHashable[T, U]) Call(arg Hashable[T]) U {
 	var ret U
-	var hashed = l.hash(arg)
+	var hashed = hex.EncodeToString(arg.Hash())
 
 	cv, ok := l.cache[hashed]
 	if ok {
@@ -189,8 +189,4 @@ func (l *LRUHashable[T, U]) Call(arg Hashable[T]) U {
 	}
 
 	return ret
-}
-
-func (*LRUHashable[T, U]) hash(v Hashable[T]) string {
-	return hex.EncodeToString(v.Hash())
 }
