@@ -1,9 +1,13 @@
 package itertools
 
-func (l *LRUCache[T, U]) GetAge() map[T]int {
+func (l *LRUComparable[T, U]) GetAge() map[T]int {
 	return l.age
 }
 
-func (l *LRUCacheArbitrary[T, U]) GetAge() map[string]int {
+func (l *LRUAny[T, U]) GetAge() map[string]int {
+	return l.age
+}
+
+func (l *LRUHashable[T, U]) GetAge() map[string]int {
 	return l.age
 }

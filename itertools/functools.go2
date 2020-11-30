@@ -4,18 +4,17 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"hash"
 )
 
-type LRUCache[T Comparable, U any] struct {
+type LRUComparable[T Comparable, U any] struct {
 	fn func(T) U
 	cache map[T]U
 	age map[T]int
 	maxSize int
 }
 
-func NewLRUCache[T Comparable, U any](fn func(T) U, maxSize int) *LRUCache[T, U] {
-	return &LRUCache[T, U]{
+func WrapLRUComparable[T Comparable, U any](fn func(T) U, maxSize int) *LRUComparable[T, U] {
+	return &LRUComparable[T, U]{
 		fn: fn,
 		cache: map[T]U{},
 		age: map[T]int{},
@@ -23,7 +22,7 @@ func NewLRUCache[T Comparable, U any](fn func(T) U, maxSize int) *LRUCache[T, U]
 	}
 }
 
-func (l *LRUCache[T, U]) Call(arg T) U {
+func (l *LRUComparable[T, U]) Call(arg T) U {
 	var ret U
 
 	cv, ok := l.cache[arg]
@@ -57,26 +56,23 @@ func (l *LRUCache[T, U]) Call(arg T) U {
 	return ret
 }
 
-type LRUCacheArbitrary[T, U any] struct {
+type LRUAny[T, U any] struct {
 	fn func(T) U
 	cache map[string]U
 	age map[string]int
 	maxSize int
-
-	hasher hash.Hash
 }
 
-func NewLRUCacheArbitrary[T, U any](fn func(T) U, maxSize int) *LRUCacheArbitrary[T, U] {
-	return &LRUCacheArbitrary[T, U]{
+func WrapLRUAny[T, U any](fn func(T) U, maxSize int) *LRUAny[T, U] {
+	return &LRUAny[T, U]{
 		fn: fn,
 		cache: map[string]U{},
 		age: map[string]int{},
 		maxSize: maxSize,
-		hasher: sha256.New(),
 	}
 }
 
-func (l *LRUCacheArbitrary[T, U]) Call(arg T) U {
+func (l *LRUAny[T, U]) Call(arg T) U {
 	var ret U
 	var sha = sha256.Sum256([]byte(fmt.Sprintf("%#v", arg)))
 	var hashed = hex.EncodeToString(sha[:])
@@ -112,3 +108,63 @@ func (l *LRUCacheArbitrary[T, U]) Call(arg T) U {
 	return ret
 }
 
+type Hashable[T any] interface {
+	Hash() []byte
+}
+
+type LRUHashable[T Hashable[T], U any] struct {
+	fn func(T) U
+	cache map[string]U
+	age map[string]int
+	maxSize int
+}
+
+func WrapLRUHashable[T Hashable[T], U any](fn func(T) U, maxSize int) *LRUHashable[T, U] {
+	return &LRUHashable[T, U]{
+		fn: fn,
+		cache: map[string]U{},
+		age: map[string]int{},
+		maxSize: maxSize,
+	}
+}
+
+func (l *LRUHashable[T, U]) Call(arg Hashable[T]) U {
+	var ret U
+	var hashed = l.hash(arg)
+
+	cv, ok := l.cache[hashed]
+	if ok {
+		ret = cv
+	} else {
+		// Assertability of arg (Hashable[T]) to T is guaranteed in build time
+		// because T must implement Hashable in order to instantiate generic LRUHashable[T, U]
+		ret = l.fn(arg.(T))
+		l.cache[hashed] = ret
+	}
+
+	l.age[hashed] = -1
+
+	for k := range l.age {
+		l.age[k] += 1
+	}
+
+	if len(l.age) > l.maxSize {
+		var mk string
+		var ma int
+
+		for k, age := range l.age {
+			if ma < age {
+				mk, ma = k, age
+			}
+		}
+
+		delete(l.cache, mk)
+		delete(l.age, mk)
+	}
+
+	return ret
+}
+
+func (*LRUHashable[T, U]) hash(v Hashable[T]) string {
+	return hex.EncodeToString(v.Hash())
+}

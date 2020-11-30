@@ -11,11 +11,12 @@ import (
 )
 
 func TestFunctools(t *testing.T) {
-	t.Run("LRUCache", testLRUCache)
-	t.Run("LRUCacheArbitrary", testLRUCacheArbitrary)
+	t.Run("LRUComparable", testLRUComparable)
+	t.Run("LRUAny", testLRUAny)
+	t.Run("LRUHashable", testLRUHashable)
 }
 
-func testLRUCache(t *testing.T) {
+func testLRUComparable(t *testing.T) {
 	calls := map[int]int{}
 
 	fn := func(arg int) int {
@@ -28,7 +29,7 @@ func testLRUCache(t *testing.T) {
 		return 10*arg
 	}
 
-	lru := itertools.NewLRUCache(fn, 2)
+	lru := itertools.WrapLRUComparable(fn, 2)
 
 	val := lru.Call(1)
 	if val != 10 {
@@ -85,7 +86,12 @@ type Struct struct {
 	Name string
 }
 
-func testLRUCacheArbitrary(t *testing.T) {
+func (s Struct) Hash() []byte {
+	digest := sha256.Sum256([]byte(s.Name))
+	return digest[:]
+}
+
+func testLRUAny(t *testing.T) {
 	one, two, three := Struct{Name: "1"}, Struct{Name: "2"}, Struct{Name: "3"}
 	//oneh, twoh, threeh := fmt.Sprintf("%#v", one), fmt.Sprintf("%#v", two), fmt.Sprintf("%#v", three)
 	ones := sha256.Sum256([]byte(fmt.Sprintf("%#v", one)))
@@ -94,8 +100,6 @@ func testLRUCacheArbitrary(t *testing.T) {
 	twoh := hex.EncodeToString(twos[:])
 	threes := sha256.Sum256([]byte(fmt.Sprintf("%#v", three)))
 	threeh := hex.EncodeToString(threes[:])
-
-	fmt.Println(oneh, twoh, threeh)
 
 	calls := map[Struct]int{}
 
@@ -109,7 +113,78 @@ func testLRUCacheArbitrary(t *testing.T) {
 		return arg.Name + arg.Name
 	}
 
-	lru := itertools.NewLRUCacheArbitrary(fn, 2)
+	lru := itertools.WrapLRUAny(fn, 2)
+
+	val := lru.Call(one)
+	if val != "11" {
+		t.Fatalf("unexpected ret val: expected=11, actual=%v", val)
+	}
+	val = lru.Call(two)
+	if val != "22" {
+		t.Fatalf("unexpected ret val: expected=22, actual=%v", val)
+	}
+	val = lru.Call(one)
+	if val != "11" {
+		t.Fatalf("unexpected ret val: expected=11, actual=%v", val)
+	}
+	val = lru.Call(two)
+	if val != "22" {
+		t.Fatalf("unexpected ret val: expected=22, actual=%v", val)
+	}
+
+	expectCall := map[Struct]int{one: 1, two: 1}
+	if !reflect.DeepEqual(expectCall, calls) {
+		t.Fatalf("unexpected cache state: expected=%v, actual=%v", expectCall, calls)
+	}
+
+	expectAge := map[string]int{oneh: 1, twoh: 0}
+	if !reflect.DeepEqual(expectAge, lru.GetAge()) {
+		t.Fatalf("unexpected cache state: expected=%v, actual=%v", expectAge, calls)
+	}
+
+	val = lru.Call(one)
+	if val != "11" {
+		t.Fatalf("unexpected ret val: expected=11, actual=%v", val)
+	}
+	val = lru.Call(three)
+	if val != "33" {
+		t.Fatalf("unexpected ret val: expected=33, actual=%v", val)
+	}
+	val = lru.Call(three)
+	if val != "33" {
+		t.Fatalf("unexpected ret val: expected=33, actual=%v", val)
+	}
+
+	expectCall = map[Struct]int{one: 1, two: 1, three: 1}
+	if !reflect.DeepEqual(expectCall, calls) {
+		t.Fatalf("unexpected cache state: expected=%v, actual=%v", expectCall, calls)
+	}
+
+	expectAge = map[string]int{oneh: 2, threeh: 0}
+	if !reflect.DeepEqual(expectAge, lru.GetAge()) {
+		t.Fatalf("unexpected cache state: expected=%v, actual=%v", expectAge, calls)
+	}
+}
+
+func testLRUHashable(t *testing.T) {
+	one, two, three := Struct{Name: "1"}, Struct{Name: "2"}, Struct{Name: "3"}
+	oneh := hex.EncodeToString(one.Hash())
+	twoh := hex.EncodeToString(two.Hash())
+	threeh := hex.EncodeToString(three.Hash())
+
+	calls := map[Struct]int{}
+
+	fn := func(arg Struct) string {
+		_, ok := calls[arg]
+		if ok {
+			calls[arg] += 1
+		} else {
+			calls[arg] = 1
+		}
+		return arg.Name + arg.Name
+	}
+
+	lru := itertools.WrapLRUHashable(fn, 2)
 
 	val := lru.Call(one)
 	if val != "11" {
