@@ -6,6 +6,11 @@ import (
 	"fmt"
 )
 
+// LRUComparable is a Least Recent Use cache of calls to fn
+// equivalent to functools.lru_cache in Python.
+//
+// The type of the function argument must be a Comparable.
+// Refer to /itertools/types.go2 for the definition of Comparable.
 type LRUComparable[T Comparable, U any] struct {
 	fn func(T) U
 	cache map[T]U
@@ -13,6 +18,8 @@ type LRUComparable[T Comparable, U any] struct {
 	maxSize int
 }
 
+// WrapLRUComparable wraps given function with LRUComparable.
+// It'll save up to maxSize calls (unique).
 func WrapLRUComparable[T Comparable, U any](fn func(T) U, maxSize int) *LRUComparable[T, U] {
 	return &LRUComparable[T, U]{
 		fn: fn,
@@ -22,6 +29,8 @@ func WrapLRUComparable[T Comparable, U any](fn func(T) U, maxSize int) *LRUCompa
 	}
 }
 
+// Call returns the result of a call to the wrapped function.
+// It calls the function only if a call with given arg is not cached.
 func (l *LRUComparable[T, U]) Call(arg T) U {
 	var ret U
 
@@ -56,6 +65,13 @@ func (l *LRUComparable[T, U]) Call(arg T) U {
 	return ret
 }
 
+// LRUAny is a Least Recent Use cache of calls to fn
+// equivalent to functools.lru_cache in Python.
+//
+// Any type is allowed for the function argument.
+// It hashes given arg with fmt.Sprintf("%#v", arg).
+// Please keep in mind that fmt.Sprintf may produce a very long string representation.
+// To customize how it get hashed, use LRUHashable instead.
 type LRUAny[T, U any] struct {
 	fn func(T) U
 	cache map[string]U
@@ -63,6 +79,8 @@ type LRUAny[T, U any] struct {
 	maxSize int
 }
 
+// WrapLRUAny wraps given function with LRUAny.
+// It'll save up to maxSize calls (unique).
 func WrapLRUAny[T, U any](fn func(T) U, maxSize int) *LRUAny[T, U] {
 	return &LRUAny[T, U]{
 		fn: fn,
@@ -108,10 +126,16 @@ func (l *LRUAny[T, U]) Call(arg T) U {
 	return ret
 }
 
+// Hashable is an interface of hashable types.
 type Hashable[T any] interface {
 	Hash() []byte
 }
 
+// LRUHashable is a Least Recent Use cache of calls to fn
+// equivalent to functools.lru_cache in Python.
+//
+// The types that implement Hashable are allowed for the function argument.
+// It hashes given arg with arg.Hash().
 type LRUHashable[T Hashable[T], U any] struct {
 	fn func(T) U
 	cache map[string]U
@@ -119,6 +143,8 @@ type LRUHashable[T Hashable[T], U any] struct {
 	maxSize int
 }
 
+// WrapLRUHashable wraps given function with LRUHashable.
+// It'll save up to maxSize calls (unique).
 func WrapLRUHashable[T Hashable[T], U any](fn func(T) U, maxSize int) *LRUHashable[T, U] {
 	return &LRUHashable[T, U]{
 		fn: fn,
