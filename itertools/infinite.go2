@@ -57,6 +57,26 @@ func Cycle[T any](iter []T) chan T {
 	return c
 }
 
+// CycleWithContext is an alternative of Cycle that obeys a context.
+func CycleWithContext[T any](iter []T, ctx context.Context) chan T {
+	c := make(chan T)
+	go func() {
+		defer close(c)
+
+		for {
+			for _, v := range iter {
+				select {
+				case <-ctx.Done():
+					return
+				case c <- v:
+					// go ahead!
+				}
+			}
+		}
+	}()
+	return c
+}
+
 // CycleC is an alternative of Cycle that inputs a channel.
 // The output is synchronized to the input and repeats it infinitely.
 func CycleC[T any](iter <-chan T) chan T {
@@ -72,6 +92,37 @@ func CycleC[T any](iter <-chan T) chan T {
 		for {
 			for i := range buf {
 				c <- buf[i]
+			}
+		}
+	}()
+	return c
+}
+
+// CycleCWithContext is an alternative of CycleC that obeys a context.
+// The output is synchronized to the input and repeats it infinitely.
+func CycleCWithContext[T any](iter <-chan T, ctx context.Context) chan T {
+	c := make(chan T)
+	buf := []T{}
+
+	go func() {
+		defer close(c)
+
+		for v := range iter {
+			buf = append(buf, v)
+			select {
+			case <-ctx.Done():
+				return
+			case c <- v:
+			}
+		}
+
+		for {
+			for i := range buf {
+				select {
+				case <-ctx.Done():
+					return
+				case c <- buf[i]:
+				}
 			}
 		}
 	}()

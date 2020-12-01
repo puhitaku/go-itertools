@@ -13,8 +13,8 @@ A port of Python itertools, functools, built-ins, and more-itertools for Go 2 wi
 |Python|Slice I/O|Channel I/O|Channel I/O + context|
 |:--|:--|:--|:--|
 |itertools.count||Count|CountWithContext|
-|itertools.cycle|Cycle<sup>[1](#infinite1)</sup>|CycleC|
-|itertools.repeat||Repeat|
+|itertools.cycle|Cycle<sup>[1](#infinite1)</sup>|CycleC|CycleCWithContext|
+|itertools.repeat||Repeat||
 
 <a name="infinite1">1</a>: Input slice, output channel
 

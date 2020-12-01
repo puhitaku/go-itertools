@@ -53,27 +53,67 @@ func testCount(t *testing.T) {
 }
 
 func testCycle(t *testing.T) {
-	it1 := itertools.Cycle([]int{1, 2, 3})
+	it := itertools.Cycle([]int{1, 2, 3})
 	expect := []int{1, 2, 3, 1, 2, 3, 1}
 	output := []int{}
 
 	for i := 0; i < 7; i++ {
-		output = append(output, <-it1)
+		output = append(output, <-it)
 	}
 
 	if !reflect.DeepEqual(output, expect) {
-		t.Fatal("the result did not match with the expected slice")
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
-	it2 := itertools.CycleC(itertools.C([]int{1, 2, 3}))
+	ctx1, cancel := context.WithCancel(context.Background())
+
+	it = itertools.CycleWithContext([]int{1, 2, 3}, ctx1)
+	output = []int{}
+	for i := 0; i < 7; i++ {
+		output = append(output, <-it)
+	}
+
+	cancel()
+	time.Sleep(time.Millisecond) // -> Line 40
+
+	for v := range it {
+		// This loop should not be entered as CountWithContext is cancelled
+		output = append(output, v)
+	}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	it = itertools.CycleC(itertools.C([]int{1, 2, 3}))
 	output = []int{}
 
 	for i := 0; i < 7; i++ {
-		output = append(output, <-it2)
+		output = append(output, <-it)
 	}
 
 	if !reflect.DeepEqual(output, expect) {
-		t.Fatal("the result did not match with the expected slice")
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	ctx2, cancel := context.WithCancel(context.Background())
+
+	it = itertools.CycleCWithContext(itertools.C([]int{1, 2, 3}), ctx2)
+	output = []int{}
+	for i := 0; i < 7; i++ {
+		output = append(output, <-it)
+	}
+
+	cancel()
+	time.Sleep(time.Millisecond) // -> Line 40
+
+	for v := range it {
+		// This loop should not be entered as CountWithContext is cancelled
+		output = append(output, v)
+	}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 }
 
