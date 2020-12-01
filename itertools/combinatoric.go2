@@ -143,7 +143,7 @@ func PermutationsC[T any](iterC <-chan T, r int) chan []T {
 
 		cycles := make([]int, r)
 		for i := range cycles {
-			cycles[i] = n-i
+			cycles[i] = n - i
 		}
 
 		yield()
@@ -152,9 +152,9 @@ func PermutationsC[T any](iterC <-chan T, r int) chan []T {
 			return
 		}
 
-outer:
+	outer:
 		for {
-			for i := r-1; i >= 0; i-- {
+			for i := r - 1; i >= 0; i-- {
 				cycles[i]--
 				if cycles[i] == 0 {
 					index := indices[i]
@@ -217,7 +217,7 @@ func CombinationsC[T any](iterC <-chan T, r int) chan []T {
 		for {
 			i := r - 1
 			for ; i >= 0; i-- {
-				if indices[i] != i + n - r {
+				if indices[i] != i+n-r {
 					break
 				}
 			}
@@ -225,7 +225,7 @@ func CombinationsC[T any](iterC <-chan T, r int) chan []T {
 				return
 			}
 			indices[i] += 1
-			for j := i+1; j < r; j++ {
+			for j := i + 1; j < r; j++ {
 				indices[j] = indices[j-1] + 1
 			}
 			yield()
@@ -270,7 +270,7 @@ func CombinationsWithReplacementC[T any](iter []T, r int) chan []T {
 		for {
 			i := r - 1
 			for ; i >= 0; i-- {
-				if indices[i] != n - 1 {
+				if indices[i] != n-1 {
 					break
 				}
 			}

@@ -13,9 +13,9 @@ func S[T any](c <-chan T) []T {
 func C[T any](s []T) <-chan T {
 	c := make(chan T)
 
-	go func(){
+	go func() {
 		defer close(c)
-		for i := range(s) {
+		for i := range s {
 			c <- s[i]
 		}
 	}()

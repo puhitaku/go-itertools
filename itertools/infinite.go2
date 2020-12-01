@@ -43,7 +43,6 @@ func CountWithContext[T Incrementable](start T, ctx context.Context) chan T {
 	return c
 }
 
-
 // Cycle emits the elements in the slice infinitely.
 func Cycle[T any](iter []T) chan T {
 	c := make(chan T)

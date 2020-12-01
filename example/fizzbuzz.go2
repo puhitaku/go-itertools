@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	threes := iter.MapC(func (i int) bool { return i%3 == 0 }, iter.Count(1))
-	fives := iter.MapC(func (i int) bool { return i%5 == 0 }, iter.Count(1))
+	threes := iter.MapC(func(i int) bool { return i%3 == 0 }, iter.Count(1))
+	fives := iter.MapC(func(i int) bool { return i%5 == 0 }, iter.Count(1))
 	fb := iter.Zip2C(threes, fives)
 
 	for i := 0; i < 15; i++ {

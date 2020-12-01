@@ -12,9 +12,9 @@ import (
 // The type of the function argument must be a Comparable.
 // Refer to /itertools/types.go2 for the definition of Comparable.
 type LRUComparable[T Comparable, U any] struct {
-	fn func(T) U
-	cache map[T]U
-	age map[T]int
+	fn      func(T) U
+	cache   map[T]U
+	age     map[T]int
 	maxSize int
 }
 
@@ -22,9 +22,9 @@ type LRUComparable[T Comparable, U any] struct {
 // It'll save up to maxSize calls (unique).
 func WrapLRUComparable[T Comparable, U any](fn func(T) U, maxSize int) *LRUComparable[T, U] {
 	return &LRUComparable[T, U]{
-		fn: fn,
-		cache: map[T]U{},
-		age: map[T]int{},
+		fn:      fn,
+		cache:   map[T]U{},
+		age:     map[T]int{},
 		maxSize: maxSize,
 	}
 }
@@ -73,9 +73,9 @@ func (l *LRUComparable[T, U]) Call(arg T) U {
 // Please keep in mind that fmt.Sprintf may produce a very long string representation.
 // To customize how it get hashed, use LRUHashable instead.
 type LRUAny[T, U any] struct {
-	fn func(T) U
-	cache map[string]U
-	age map[string]int
+	fn      func(T) U
+	cache   map[string]U
+	age     map[string]int
 	maxSize int
 }
 
@@ -83,9 +83,9 @@ type LRUAny[T, U any] struct {
 // It'll save up to maxSize calls (unique).
 func WrapLRUAny[T, U any](fn func(T) U, maxSize int) *LRUAny[T, U] {
 	return &LRUAny[T, U]{
-		fn: fn,
-		cache: map[string]U{},
-		age: map[string]int{},
+		fn:      fn,
+		cache:   map[string]U{},
+		age:     map[string]int{},
 		maxSize: maxSize,
 	}
 }
@@ -137,9 +137,9 @@ type Hashable[T any] interface {
 // The types that implement Hashable are allowed for the function argument.
 // It hashes given arg with arg.Hash().
 type LRUHashable[T Hashable[T], U any] struct {
-	fn func(T) U
-	cache map[string]U
-	age map[string]int
+	fn      func(T) U
+	cache   map[string]U
+	age     map[string]int
 	maxSize int
 }
 
@@ -147,9 +147,9 @@ type LRUHashable[T Hashable[T], U any] struct {
 // It'll save up to maxSize calls (unique).
 func WrapLRUHashable[T Hashable[T], U any](fn func(T) U, maxSize int) *LRUHashable[T, U] {
 	return &LRUHashable[T, U]{
-		fn: fn,
-		cache: map[string]U{},
-		age: map[string]int{},
+		fn:      fn,
+		cache:   map[string]U{},
+		age:     map[string]int{},
 		maxSize: maxSize,
 	}
 }

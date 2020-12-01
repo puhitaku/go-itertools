@@ -23,7 +23,7 @@ func testProduct(t *testing.T) {
 	output := []string{}
 
 	for _, t := range p2 {
-		output = append(output, string(t.V1) + string(t.V2))
+		output = append(output, string(t.V1)+string(t.V2))
 	}
 
 	if !reflect.DeepEqual(output, expect) {
@@ -36,7 +36,7 @@ func testProduct(t *testing.T) {
 	output = []string{}
 
 	for _, t := range p3 {
-		output = append(output, string(t.V1) + string(t.V2) + string(t.V3))
+		output = append(output, string(t.V1)+string(t.V2)+string(t.V3))
 	}
 
 	if !reflect.DeepEqual(output, expect) {
@@ -52,7 +52,7 @@ func testProduct(t *testing.T) {
 	output = []string{}
 
 	for _, t := range p4 {
-		output = append(output, string(t.V1) + string(t.V2) + string(t.V3) + string(t.V4))
+		output = append(output, string(t.V1)+string(t.V2)+string(t.V3)+string(t.V4))
 	}
 
 	if !reflect.DeepEqual(output, expect) {
@@ -65,7 +65,7 @@ func testProduct(t *testing.T) {
 	output = []string{}
 
 	for t := range p2c {
-		output = append(output, string(t.V1) + string(t.V2))
+		output = append(output, string(t.V1)+string(t.V2))
 	}
 
 	if !reflect.DeepEqual(output, expect) {
@@ -78,7 +78,7 @@ func testProduct(t *testing.T) {
 	output = []string{}
 
 	for t := range p3c {
-		output = append(output, string(t.V1) + string(t.V2) + string(t.V3))
+		output = append(output, string(t.V1)+string(t.V2)+string(t.V3))
 	}
 
 	if !reflect.DeepEqual(output, expect) {
@@ -94,7 +94,7 @@ func testProduct(t *testing.T) {
 	output = []string{}
 
 	for t := range p4c {
-		output = append(output, string(t.V1) + string(t.V2) + string(t.V3) + string(t.V4))
+		output = append(output, string(t.V1)+string(t.V2)+string(t.V3)+string(t.V4))
 	}
 
 	if !reflect.DeepEqual(output, expect) {

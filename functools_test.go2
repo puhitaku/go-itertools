@@ -27,7 +27,7 @@ func testLRUComparable(t *testing.T) {
 		} else {
 			calls[arg] = 1
 		}
-		return 10*arg
+		return 10 * arg
 	}
 
 	lru := itertools.WrapLRUComparable(fn, 2)
@@ -72,7 +72,7 @@ func testLRUComparable(t *testing.T) {
 		t.Fatalf("unexpected ret val: expected=10, actual=%v", val)
 	}
 
-	expectCall = map[int]int{1: 1, 2:1, 3: 1}
+	expectCall = map[int]int{1: 1, 2: 1, 3: 1}
 	if !reflect.DeepEqual(expectCall, calls) {
 		t.Fatalf("unexpected cache state: expected=%v, actual=%v", expectCall, calls)
 	}

@@ -9,9 +9,9 @@ import (
 func CRandom[T any](s []T) <-chan T {
 	c := make(chan T)
 
-	go func(){
+	go func() {
 		defer close(c)
-		for i := range(s) {
+		for i := range s {
 			c <- s[i]
 			time.Sleep(time.Duration(rand.Intn(10)))
 		}

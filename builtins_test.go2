@@ -33,9 +33,9 @@ var random bool
 func C[T any](s []T) <-chan T {
 	c := make(chan T)
 
-	go func(){
+	go func() {
 		defer close(c)
-		for i := range(s) {
+		for i := range s {
 			c <- s[i]
 			if random {
 				time.Sleep(time.Duration(rand.Intn(10)) * time.Millisecond)
@@ -111,14 +111,14 @@ func testFilter(t *testing.T) {
 
 func testMap(t *testing.T) {
 	s := []int{0, 1, 2, 3, 4, 5}
-	output := itertools.Map(func(v int) string { return fmt.Sprint(v*2) }, s)
+	output := itertools.Map(func(v int) string { return fmt.Sprint(v * 2) }, s)
 	expect := []string{"0", "2", "4", "6", "8", "10"}
 
 	if !reflect.DeepEqual(output, expect) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 
-	output = itertools.S(itertools.MapC(func(v int) string { return fmt.Sprint(v*2) }, itertools.C(s)))
+	output = itertools.S(itertools.MapC(func(v int) string { return fmt.Sprint(v * 2) }, itertools.C(s)))
 
 	if !reflect.DeepEqual(output, expect) {
 		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)

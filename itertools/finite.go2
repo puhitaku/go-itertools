@@ -48,7 +48,7 @@ func AccumulateIface[T AddableIface[T]](iter []T) []T {
 
 // AccumulateIfaceC is an alternative to AccumulateIface that inputs/outputs channels.
 // The output is synchronized to the input.
-func AccumulateIfaceC[T AddableIface[T]](iter <- chan T) chan T {
+func AccumulateIfaceC[T AddableIface[T]](iter <-chan T) chan T {
 	c := make(chan T)
 	var accum T
 
@@ -199,13 +199,13 @@ func TakeWhileC[T any](pred func(v T) bool, seq <-chan T) chan T {
 // FilterFalse is an alternative to Filter that negates the pred function;
 // falsy values are picked. Truthy values are dropped.
 func FilterFalse[T any](pred func(v T) bool, seq []T) []T {
-	return Filter(func(v T)bool{ return !pred(v)}, seq)
+	return Filter(func(v T) bool { return !pred(v) }, seq)
 }
 
 // FilterFalseC is an alternative to FilterFalse that inputs/outputs channels.
 // The output is synchronized to the input.
 func FilterFalseC[T any](pred func(v T) bool, seq <-chan T) <-chan T {
-	return FilterC(func(v T)bool{ return !pred(v)}, seq)
+	return FilterC(func(v T) bool { return !pred(v) }, seq)
 }
 
 // Group is a wrapper struct that contains the key and elements of a group.
@@ -396,7 +396,7 @@ func ISliceC[T any](seq <-chan T, start, stop, step int) chan T {
 				return
 			}
 
-			if i >= start && i % step == 0 {
+			if i >= start && i%step == 0 {
 				c <- v
 			}
 			i++
