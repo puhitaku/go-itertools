@@ -4,6 +4,10 @@
 
 package itertools
 
+import (
+	"context"
+)
+
 // Count counts up a value from "start" and emits it infinitely.
 // Bulit-in types that implements increment operator (++) are only supported.
 // TODO: implement CountIface
@@ -18,6 +22,27 @@ func Count[T Incrementable](start T) chan T {
 	}()
 	return c
 }
+
+// CountWithContext is an alternative to Count that obeys a context.
+func CountWithContext[T Incrementable](start T, ctx context.Context) chan T {
+	c := make(chan T)
+	v := start
+	go func() {
+		defer close(c)
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case c <- v:
+				// go ahead!
+			}
+			v++
+		}
+	}()
+	return c
+}
+
 
 // Cycle emits the elements in the slice infinitely.
 func Cycle[T any](iter []T) chan T {

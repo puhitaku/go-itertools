@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/puhitaku/go2-itertools/itertools"
 )
@@ -15,15 +17,38 @@ func TestInfinite(t *testing.T) {
 
 func testCount(t *testing.T) {
 	it := itertools.Count(10)
-	expect := []int{10, 11, 12, 13}
+	expect := []int{10, 11, 12}
 	output := []int{}
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 3; i++ {
 		output = append(output, <-it)
 	}
 
 	if !reflect.DeepEqual(output, expect) {
-		t.Fatal("the result did not match with the expected slice")
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	it = itertools.CountWithContext(1, ctx)
+	expect = []int{1, 2, 3}
+	output = []int{}
+
+	for i := 0; i < 3; i++ {
+		output = append(output, <-it)
+	}
+
+	// The inner goroutine in CountWithContext will detect it asynchronously.
+	// Without this sleep, the for-loop over channel may receive up to 1 value from the channel.
+	cancel()
+	time.Sleep(time.Millisecond)
+
+	for v := range it {
+		// This loop should not be entered as CountWithContext is cancelled
+		output = append(output, v)
+	}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 }
 
