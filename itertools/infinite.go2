@@ -141,3 +141,20 @@ func Repeat[T any](v T, n int) chan T {
 	}()
 	return c
 }
+
+// RepeatWithContext is an alternative of Repeat that obeys a context.
+// The output channel will be finite if n > 0 and infinite if n == 0.
+func RepeatWithContext[T any](v T, n int, ctx context.Context) chan T {
+	c := make(chan T)
+	go func() {
+		defer close(c)
+		for i := 0; n == 0 || i < n; i++ {
+			select {
+			case <-ctx.Done():
+				return
+			case c <- v:
+			}
+		}
+	}()
+	return c
+}

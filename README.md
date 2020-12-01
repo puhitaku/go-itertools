@@ -14,7 +14,7 @@ A port of Python itertools, functools, built-ins, and more-itertools for Go 2 wi
 |:--|:--|:--|:--|
 |itertools.count||Count|CountWithContext|
 |itertools.cycle|Cycle<sup>[1](#infinite1)</sup>|CycleC|CycleCWithContext|
-|itertools.repeat||Repeat||
+|itertools.repeat||Repeat|RepeatWithContext|
 
 <a name="infinite1">1</a>: Input slice, output channel
 

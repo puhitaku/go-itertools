@@ -127,6 +127,27 @@ func testRepeat(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(output, expect) {
-		t.Fatal("the result did not match with the expected slice")
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	it = itertools.RepeatWithContext(39, 0, ctx)
+	output = []int{}
+
+	for i := 0; i < 4; i++ {
+		output = append(output, <-it)
+	}
+
+	cancel()
+	time.Sleep(time.Millisecond) // -> Line 40
+
+	for v := range it {
+		// This loop should not be entered as RepeatWithContext is cancelled
+		output = append(output, v)
+	}
+
+	if !reflect.DeepEqual(output, expect) {
+		t.Fatalf("the result did not match with the expected slice: expect=%v, actual=%v", expect, output)
 	}
 }
