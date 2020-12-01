@@ -15,10 +15,10 @@ func TestConv(t *testing.T) {
 func testS(t *testing.T) {
 	c := make(chan int)
 	go func() {
+		defer close(c)
 		for i := 0; i < 5; i++ {
 			c <- i
 		}
-		close(c)
 	}()
 
 	output := itertools.S(c)

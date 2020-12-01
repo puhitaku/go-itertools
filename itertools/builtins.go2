@@ -84,12 +84,12 @@ func FilterC[T any](fn func(v T) bool, it <-chan T) <-chan T {
 	c := make(chan T)
 
 	go func() {
+		defer close(c)
 		for v := range it {
 			if fn(v) {
 				c <- v
 			}
 		}
-		close(c)
 	}()
 
 	return c
@@ -112,10 +112,10 @@ func MapC[T1, T2 any](fn func(v T1) T2, it <-chan T1) <-chan T2 {
 	c := make(chan T2)
 
 	go func() {
+		defer close(c)
 		for v := range it {
 			c <- fn(v)
 		}
-		close(c)
 	}()
 
 	return c

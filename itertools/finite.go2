@@ -24,11 +24,11 @@ func AccumulateC[T Addable](iter <-chan T) chan T {
 	var accum T
 
 	go func() {
+		defer close(c)
 		for v := range iter {
 			accum += v
 			c <- accum
 		}
-		close(c)
 	}()
 	return c
 }
@@ -53,11 +53,11 @@ func AccumulateIfaceC[T AddableIface[T]](iter <-chan T) chan T {
 	var accum T
 
 	go func() {
+		defer close(c)
 		for v := range iter {
 			accum = accum.Add(v)
 			c <- accum
 		}
-		close(c)
 	}()
 	return c
 }
@@ -81,12 +81,12 @@ func ChainC[T any](iter ...<-chan T) chan T {
 	c := make(chan T)
 
 	go func() {
+		defer close(c)
 		for _, it := range iter {
 			for v := range it {
 				c <- v
 			}
 		}
-		close(c)
 	}()
 
 	return c
@@ -123,13 +123,13 @@ func CompressC[T any](data <-chan T, selectors <-chan bool) chan T {
 	c := make(chan T)
 
 	go func() {
+		defer close(c)
 		z := Zip2C(data, selectors)
 		for v := range z {
 			if v.V2 {
 				c <- v.V1
 			}
 		}
-		close(c)
 	}()
 	return c
 }
@@ -153,6 +153,7 @@ func DropWhileC[T any](pred func(v T) bool, seq <-chan T) chan T {
 	drop := true
 
 	go func() {
+		defer close(c)
 		for v := range seq {
 			if drop && !pred(v) {
 				drop = false
@@ -161,7 +162,6 @@ func DropWhileC[T any](pred func(v T) bool, seq <-chan T) chan T {
 				c <- v
 			}
 		}
-		close(c)
 	}()
 
 	return c
@@ -184,13 +184,13 @@ func TakeWhileC[T any](pred func(v T) bool, seq <-chan T) chan T {
 	c := make(chan T)
 
 	go func() {
+		defer close(c)
 		for v := range seq {
 			if !pred(v) {
 				break
 			}
 			c <- v
 		}
-		close(c)
 	}()
 
 	return c
