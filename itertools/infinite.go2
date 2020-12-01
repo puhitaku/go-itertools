@@ -1,4 +1,6 @@
 // infinite: Inifinite iterators
+// Functions declared here have different naming convention that
+// they generally have no "C" in the end of their name even they output channels.
 
 package itertools
 
