@@ -77,7 +77,7 @@ func testCycle(t *testing.T) {
 	time.Sleep(time.Millisecond) // -> Line 40
 
 	for v := range it {
-		// This loop should not be entered as CountWithContext is cancelled
+		// This loop should not be entered as CycleWithContext is cancelled
 		output = append(output, v)
 	}
 
@@ -108,7 +108,7 @@ func testCycle(t *testing.T) {
 	time.Sleep(time.Millisecond) // -> Line 40
 
 	for v := range it {
-		// This loop should not be entered as CountWithContext is cancelled
+		// This loop should not be entered as CycleWithContext is cancelled
 		output = append(output, v)
 	}
 
