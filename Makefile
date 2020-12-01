@@ -8,7 +8,7 @@ translate:
 .PHONY:
 test:
 	@go tool go2go test
-	@rm -f *.go ./itertools/*.go
+	@find . -name "*.go" | grep -vE "(example|dummy)" | xargs rm
 
 .PHONY:
 fmt:
@@ -16,4 +16,4 @@ fmt:
 
 .PHONY:
 clean:
-	@rm -f *.go ./itertools/*.go
+	@find . -name "*.go" | grep -vE "(example|dummy)" | xargs rm
