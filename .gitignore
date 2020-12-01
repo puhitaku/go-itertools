@@ -115,4 +115,5 @@ modules.xml
 # End of https://www.toptal.com/developers/gitignore/api/jetbrains+all,go
 
 *.go
+!itertools/dummy.go
 !example/fizzbuzz.go
