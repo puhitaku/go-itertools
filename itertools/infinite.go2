@@ -12,10 +12,8 @@ func Count[T Incrementable](start T) chan T {
 	v := start
 	go func() {
 		for {
-			for {
-				c <- v
-				v++
-			}
+			c <- v
+			v++
 		}
 	}()
 	return c
