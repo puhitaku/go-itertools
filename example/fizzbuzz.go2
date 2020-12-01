@@ -1,0 +1,27 @@
+package main
+
+import (
+	"fmt"
+
+	iter "github.com/puhitaku/go2-itertools/itertools"
+)
+
+func main() {
+	threes := iter.MapC(func (i int) bool { return i%3 == 0 }, iter.Count(1))
+	fives := iter.MapC(func (i int) bool { return i%5 == 0 }, iter.Count(1))
+	fb := iter.Zip2C(threes, fives)
+
+	for i := 0; i < 15; i++ {
+		t := <-fb
+
+		if t.V1 && t.V2 {
+			fmt.Printf("fizzbuzz\n")
+		} else if t.V1 {
+			fmt.Printf("fizz\n")
+		} else if t.V2 {
+			fmt.Printf("buzz\n")
+		} else {
+			fmt.Printf("%02d\n", i+1)
+		}
+	}
+}
